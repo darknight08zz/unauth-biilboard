@@ -1,7 +1,7 @@
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import ReportSection from "@/components/ReportSection";
-import Dashboard from "@/components/Dashboard";
+import Header from "../components/Header";
+import Hero from "../components/Hero";
+import ReportSection from "../components/ReportSection";
+import Dashboard from "../components/Dashboard";
 
 const Index = () => {
   return (
