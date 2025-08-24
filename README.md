@@ -162,7 +162,7 @@ npm start
 
 This repository stays in sync with [v0.app](https://v0.app):
 
-1. **Build**: Continue development on [v0.app](https://v0.app/chat/projects/87YihF6FGZj)
+1. **Build**: Continue development on (https://v0.app/chat/projects/87YihF6FGZj)
 2. **Deploy**: Changes are automatically pushed from v0.app
 3. **Sync**: Repository updates trigger Vercel deployments
 
@@ -175,4 +175,3 @@ For issues and questions:
 
 ---
 
-Built with ❤️ using [v0.app](https://v0.app) and deployed on [Vercel](https://vercel.com)
