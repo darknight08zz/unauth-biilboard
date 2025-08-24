@@ -11,6 +11,8 @@ import {
   Users,
   FileText,
   Search,
+  LogOut,
+  Home,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,6 +32,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ProtectedRoute } from "@/components/protected-route"
+import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
 
 interface ViolationReport {
   id: string
@@ -86,6 +90,9 @@ const mockReports: ViolationReport[] = [
 ]
 
 function AdminDashboardContent() {
+  const { logout } = useAuth()
+  const router = useRouter()
+
   const [reports, setReports] = useState<ViolationReport[]>(mockReports)
   const [selectedReport, setSelectedReport] = useState<ViolationReport | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -165,6 +172,15 @@ function AdminDashboardContent() {
     highPriority: reports.filter((r) => r.priority === "high").length,
   }
 
+  const handleLogout = () => {
+    logout()
+    router.push("/login")
+  }
+
+  const handleGoHome = () => {
+    router.push("/")
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -176,6 +192,14 @@ function AdminDashboardContent() {
               <p className="text-muted-foreground mt-2">Billboard violation reports and compliance management</p>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={handleGoHome}>
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export Reports

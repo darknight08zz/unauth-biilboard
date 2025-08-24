@@ -12,11 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { login } = useAuth()
 
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -39,24 +41,36 @@ export default function LoginPage() {
     // Mock authentication
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
+    let userRole = "citizen" // default role
+
+    // Determine role based on email patterns
+    if (loginForm.email.includes("admin")) {
+      userRole = "admin"
+    } else if (loginForm.email.includes("inspector")) {
+      userRole = "inspector"
+    } else {
+      userRole = "citizen"
+    }
+
     // Store user data in localStorage (mock session)
     const userData = {
       id: "user-123",
       email: loginForm.email,
       firstName: "John",
       lastName: "Doe",
-      role: loginForm.email.includes("admin") ? "admin" : "citizen",
+      role: userRole as "citizen" | "inspector" | "admin",
       isAuthenticated: true,
     }
 
-    localStorage.setItem("user", JSON.stringify(userData))
+    login(userData)
 
-    // Redirect based on role
-    if (userData.role === "admin") {
-      router.push("/admin")
-    } else {
-      router.push("/")
-    }
+    setTimeout(() => {
+      if (userData.role === "admin" || userData.role === "inspector") {
+        window.location.href = "/admin"
+      } else {
+        window.location.href = "/"
+      }
+    }, 100)
 
     setIsLoading(false)
   }
@@ -79,18 +93,19 @@ export default function LoginPage() {
       email: signupForm.email,
       firstName: signupForm.firstName,
       lastName: signupForm.lastName,
-      role: signupForm.role,
+      role: signupForm.role as "citizen" | "inspector" | "admin",
       isAuthenticated: true,
     }
 
-    localStorage.setItem("user", JSON.stringify(userData))
+    login(userData)
 
-    // Redirect based on role
-    if (userData.role === "admin") {
-      router.push("/admin")
-    } else {
-      router.push("/")
-    }
+    setTimeout(() => {
+      if (userData.role === "admin" || userData.role === "inspector") {
+        window.location.href = "/admin"
+      } else {
+        window.location.href = "/"
+      }
+    }, 100)
 
     setIsLoading(false)
   }
@@ -165,6 +180,7 @@ export default function LoginPage() {
                   <div className="text-center text-sm text-muted-foreground">
                     <p>Demo accounts:</p>
                     <p>Admin: admin@city.gov / password</p>
+                    <p>Inspector: inspector@city.gov / password</p>
                     <p>Citizen: citizen@email.com / password</p>
                   </div>
                 </form>
