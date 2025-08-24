@@ -1,9 +1,5 @@
 # Billboard Detection and Reporting System
 
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/prajapatiujjwal0802-1050s-projects/v0-billboarddetectionandreportingm)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/87YihF6FGZj)
-
 ## 🎯 Overview
 
 A comprehensive web application for detecting and reporting unauthorized billboards using AI-powered analysis. This system helps municipal authorities and citizens identify billboard violations, ensure regulatory compliance, and maintain urban aesthetics through automated detection and reporting mechanisms.
