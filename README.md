@@ -56,7 +56,7 @@ A comprehensive web application for detecting and reporting unauthorized billboa
 
 1. **Clone the repository**
    \`\`\`bash
-   git clone https://github.com/your-username/billboard-detection-system.git
+   git clone https://github.com/darknight08zz/unauth-billboard.git
    cd billboard-detection-system
    \`\`\`
 
