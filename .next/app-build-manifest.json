@@ -16,20 +16,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/login/page.js"
     ],
-    "/public-dashboard/loading": [
+    "/admin/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/public-dashboard/loading.js"
+      "static/chunks/app/admin/loading.js"
     ],
-    "/public-dashboard/page": [
+    "/admin/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/public-dashboard/page.js"
-    ],
-    "/compliance/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/compliance/page.js"
+      "static/chunks/app/admin/page.js"
     ]
   }
 }

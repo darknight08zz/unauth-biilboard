@@ -118,6 +118,54 @@ export default function BillboardDetectionApp() {
     setIsAnalyzing(false)
   }
 
+  const submitViolationReport = () => {
+    if (!analysisResult || !user) return
+
+    const report = {
+      id: `RPT-${Date.now()}`,
+      status: "pending" as const,
+      priority:
+        analysisResult.riskLevel === "critical"
+          ? ("high" as const)
+          : analysisResult.riskLevel === "high"
+            ? ("high" as const)
+            : analysisResult.riskLevel === "medium"
+              ? ("medium" as const)
+              : ("low" as const),
+      violationType: analysisResult.violations,
+      location: analysisResult.location || "Unknown Location",
+      reportedBy: user.email,
+      reportedAt: analysisResult.timestamp,
+      confidence: analysisResult.confidence,
+      imageUrl: analysisResult.imageUrl,
+      description: analysisResult.description,
+      complianceScore: analysisResult.complianceScore,
+      totalFines: analysisResult.totalFines,
+      riskLevel: analysisResult.riskLevel,
+    }
+
+    // Get existing reports from localStorage
+    const existingReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
+
+    // Add new report
+    const updatedReports = [report, ...existingReports]
+
+    // Save back to localStorage
+    localStorage.setItem("violationReports", JSON.stringify(updatedReports))
+
+    // Show success message
+    alert("Violation report submitted successfully! Authorities will review your report.")
+
+    // Reset form
+    setSelectedFile(null)
+    setAnalysisResult(null)
+    setLocation("")
+    setDescription("")
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "compliant":
@@ -439,7 +487,11 @@ export default function BillboardDetectionApp() {
                       </Button>
                     </Link>
                     {analysisResult.violations.length > 0 && user && (
-                      <Button size="sm" className="bg-destructive hover:bg-destructive/90">
+                      <Button
+                        size="sm"
+                        className="bg-destructive hover:bg-destructive/90"
+                        onClick={submitViolationReport}
+                      >
                         <AlertTriangle className="h-4 w-4 mr-2" />
                         Submit Violation Report
                       </Button>

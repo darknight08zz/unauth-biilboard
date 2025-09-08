@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   AlertTriangle,
   CheckCircle,
@@ -93,11 +93,35 @@ function AdminDashboardContent() {
   const { logout } = useAuth()
   const router = useRouter()
 
-  const [reports, setReports] = useState<ViolationReport[]>(mockReports)
+  const loadReports = () => {
+    const savedReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
+    return [...savedReports, ...mockReports]
+  }
+
+  const [reports, setReports] = useState<ViolationReport[]>(loadReports())
   const [selectedReport, setSelectedReport] = useState<ViolationReport | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
+
+  useEffect(() => {
+    const refreshReports = () => {
+      setReports(loadReports())
+    }
+
+    // Refresh reports when the component mounts
+    refreshReports()
+
+    // Listen for storage changes (when new reports are added)
+    window.addEventListener("storage", refreshReports)
+
+    const interval = setInterval(refreshReports, 5000)
+
+    return () => {
+      window.removeEventListener("storage", refreshReports)
+      clearInterval(interval)
+    }
+  }, [])
 
   const filteredReports = reports.filter((report) => {
     const matchesStatus = statusFilter === "all" || report.status === statusFilter
@@ -155,13 +179,17 @@ function AdminDashboardContent() {
   }
 
   const updateReportStatus = (reportId: string, newStatus: string, notes?: string) => {
-    setReports((prev) =>
-      prev.map((report) =>
-        report.id === reportId
-          ? { ...report, status: newStatus as any, adminNotes: notes || report.adminNotes }
-          : report,
-      ),
+    const updatedReports = reports.map((report) =>
+      report.id === reportId ? { ...report, status: newStatus as any, adminNotes: notes || report.adminNotes } : report,
     )
+
+    setReports(updatedReports)
+
+    // Save citizen reports back to localStorage (exclude mock reports)
+    const citizenReports = updatedReports.filter(
+      (report) => report.id.startsWith("RPT-") && !mockReports.find((mock) => mock.id === report.id),
+    )
+    localStorage.setItem("violationReports", JSON.stringify(citizenReports))
   }
 
   const stats = {
@@ -170,6 +198,108 @@ function AdminDashboardContent() {
     investigating: reports.filter((r) => r.status === "investigating").length,
     resolved: reports.filter((r) => r.status === "resolved").length,
     highPriority: reports.filter((r) => r.priority === "high").length,
+  }
+
+  const exportReports = () => {
+    const csvHeaders = [
+      "Report ID",
+      "Status",
+      "Priority",
+      "Violation Types",
+      "Location",
+      "Reported By",
+      "Reported At",
+      "Confidence",
+      "Description",
+      "Admin Notes",
+    ]
+
+    const csvData = filteredReports.map((report) => [
+      report.id,
+      report.status,
+      report.priority,
+      report.violationType.join("; "),
+      report.location,
+      report.reportedBy,
+      new Date(report.reportedAt).toLocaleDateString(),
+      `${report.confidence}%`,
+      report.description || "",
+      report.adminNotes || "",
+    ])
+
+    const csvContent = [csvHeaders.join(","), ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(","))].join(
+      "\n",
+    )
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `billboard-reports-${new Date().toISOString().split("T")[0]}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const generateSummary = () => {
+    const summaryData = {
+      reportDate: new Date().toLocaleDateString(),
+      totalReports: stats.total,
+      pendingReports: stats.pending,
+      investigatingReports: stats.investigating,
+      resolvedReports: stats.resolved,
+      highPriorityReports: stats.highPriority,
+      violationBreakdown: {
+        sizeViolations: reports.filter((r) => r.violationType.some((v) => v.includes("Size"))).length,
+        permitIssues: reports.filter((r) => r.violationType.some((v) => v.includes("Permit"))).length,
+        placementViolations: reports.filter((r) => r.violationType.some((v) => v.includes("Placement"))).length,
+        structuralConcerns: reports.filter((r) => r.violationType.some((v) => v.includes("Structural"))).length,
+      },
+      complianceRate: Math.round(((stats.total - stats.pending) / stats.total) * 100),
+      averageConfidence: Math.round(reports.reduce((sum, r) => sum + r.confidence, 0) / reports.length),
+    }
+
+    const summaryText = `
+BILLBOARD VIOLATION SUMMARY REPORT
+Generated: ${summaryData.reportDate}
+
+OVERVIEW
+========
+Total Reports: ${summaryData.totalReports}
+Pending: ${summaryData.pendingReports}
+Under Investigation: ${summaryData.investigatingReports}
+Resolved: ${summaryData.resolvedReports}
+High Priority: ${summaryData.highPriorityReports}
+
+VIOLATION BREAKDOWN
+==================
+Size Violations: ${summaryData.violationBreakdown.sizeViolations}
+Permit Issues: ${summaryData.violationBreakdown.permitIssues}
+Placement Violations: ${summaryData.violationBreakdown.placementViolations}
+Structural Concerns: ${summaryData.violationBreakdown.structuralConcerns}
+
+PERFORMANCE METRICS
+==================
+Compliance Rate: ${summaryData.complianceRate}%
+Average AI Confidence: ${summaryData.averageConfidence}%
+
+RECOMMENDATIONS
+==============
+${summaryData.pendingReports > 5 ? "• High number of pending reports - consider increasing inspection resources" : "• Pending reports are within manageable range"}
+${summaryData.highPriorityReports > 3 ? "• Multiple high-priority violations require immediate attention" : "• High-priority violations are under control"}
+${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase enforcement efforts" : "• Compliance rate meets city standards"}
+    `.trim()
+
+    const blob = new Blob([summaryText], { type: "text/plain;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+    link.setAttribute("href", url)
+    link.setAttribute("download", `billboard-summary-${new Date().toISOString().split("T")[0]}.txt`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleLogout = () => {
@@ -200,11 +330,15 @@ function AdminDashboardContent() {
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setReports(loadReports())}>
+                <Eye className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+              <Button variant="outline" onClick={exportReports}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Reports
               </Button>
-              <Button>
+              <Button onClick={generateSummary}>
                 <FileText className="h-4 w-4 mr-2" />
                 Generate Summary
               </Button>
