@@ -1604,9 +1604,6 @@ video {
 .bg-primary\/10 {
   background-color: hsl(var(--primary) / 0.1);
 }
-.bg-primary\/5 {
-  background-color: hsl(var(--primary) / 0.05);
-}
 .bg-red-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
