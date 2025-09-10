@@ -15,13 +15,14 @@ import {
   User,
   Shield,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { Badge } from "../components/ui/badge"
+import { Progress } from "../components/ui/progress"
+import { Textarea } from "../components/ui/textarea"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { BillboardAnalyzer } from "../components/billboard-analyzer"
 import { useAuth } from "../components/auth-provider"
 import { enhanceAnalysisWithCompliance } from "../lib/compliance-engine"
 import Link from "next/link"
@@ -40,6 +41,7 @@ interface AnalysisResult {
   totalFines?: number
   riskLevel?: "low" | "medium" | "high" | "critical"
 }
+
 
 export default function BillboardDetectionApp() {
   const { user, logout } = useAuth()

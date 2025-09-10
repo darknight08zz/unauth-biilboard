@@ -59,7 +59,7 @@ export const complianceRules: ComplianceRule[] = [
           violationMessage: `Billboard exceeds maximum size limit (${billboard.dimensions.area} sq ft > ${maxArea} sq ft)`,
           recommendedAction: "Reduce billboard size or relocate to appropriate zone",
           fineAmount: 500,
-          urgency: "within_60_days"
+          urgency: "within_60_days",
         }
       }
       return { isCompliant: true }
@@ -81,41 +81,45 @@ export const complianceRules: ComplianceRule[] = [
             violationMessage: `Billboard critically positioned too close to signalized intersection (estimated ${distance} ft < required 300 ft minimum)`,
             recommendedAction: "IMMEDIATE relocation required - poses traffic safety hazard",
             fineAmount: 1500,
-            urgency: "immediate"
+            urgency: "immediate",
           }
         }
       }
-      
+
       // Standard intersection distance check
-      if (billboard.location.distanceFromIntersection !== undefined && 
-          billboard.location.distanceFromIntersection < 300) {
+      if (
+        billboard.location.distanceFromIntersection !== undefined &&
+        billboard.location.distanceFromIntersection < 300
+      ) {
         return {
           isCompliant: false,
           violationMessage: `Billboard too close to intersection (${billboard.location.distanceFromIntersection} ft < 300 ft required)`,
           recommendedAction: "Relocate billboard to maintain 300ft minimum distance from intersection",
           fineAmount: 750,
-          urgency: "within_30_days"
+          urgency: "within_30_days",
         }
       }
       return { isCompliant: true }
     },
   },
   {
-    id: "PLACEMENT_002", 
+    id: "PLACEMENT_002",
     category: "placement",
     name: "Traffic Signal Visibility",
     description: "Billboard must not obstruct or interfere with traffic signal visibility",
     severity: "critical",
     checkFunction: (billboard: BillboardData): ComplianceResult => {
-      if (billboard.location.hasTrafficSignalsVisible && 
-          billboard.location.distanceFromTrafficSignals !== undefined &&
-          billboard.location.distanceFromTrafficSignals < 150) {
+      if (
+        billboard.location.hasTrafficSignalsVisible &&
+        billboard.location.distanceFromTrafficSignals !== undefined &&
+        billboard.location.distanceFromTrafficSignals < 150
+      ) {
         return {
           isCompliant: false,
           violationMessage: `Billboard may obstruct traffic signal visibility (${billboard.location.distanceFromTrafficSignals} ft from signals)`,
           recommendedAction: "Conduct visibility impact study and relocate if necessary",
           fineAmount: 2000,
-          urgency: "immediate"
+          urgency: "immediate",
         }
       }
       return { isCompliant: true }
@@ -131,14 +135,14 @@ export const complianceRules: ComplianceRule[] = [
       if (billboard.content.isDigital && billboard.location.nearIntersection) {
         const minDistance = 500 // Stricter requirement for digital signs
         const distance = billboard.location.distanceFromIntersection || 0
-        
+
         if (distance < minDistance) {
           return {
             isCompliant: false,
             violationMessage: `Digital billboard too close to intersection (${distance} ft < ${minDistance} ft required for digital signage)`,
             recommendedAction: "Relocate digital billboard or convert to static signage",
             fineAmount: 1200,
-            urgency: "within_30_days"
+            urgency: "within_30_days",
           }
         }
       }
@@ -147,7 +151,7 @@ export const complianceRules: ComplianceRule[] = [
   },
   {
     id: "DIGITAL_002",
-    category: "digital", 
+    category: "digital",
     name: "Digital Billboard Brightness Control",
     description: "Digital billboards must have appropriate brightness levels to prevent driver distraction",
     severity: "medium",
@@ -158,7 +162,7 @@ export const complianceRules: ComplianceRule[] = [
           violationMessage: "Digital billboard brightness exceeds safe levels for traffic areas",
           recommendedAction: "Install automatic brightness controls and reduce daytime brightness",
           fineAmount: 600,
-          urgency: "within_30_days"
+          urgency: "within_30_days",
         }
       }
       return { isCompliant: true }
@@ -171,15 +175,17 @@ export const complianceRules: ComplianceRule[] = [
     description: "Billboard structure must be in safe condition",
     severity: "critical",
     checkFunction: (billboard: BillboardData): ComplianceResult => {
-      if (billboard.structural.hasStructuralIssues ||
-          billboard.structural.supportCondition === "critical" ||
-          billboard.structural.supportCondition === "poor") {
+      if (
+        billboard.structural.hasStructuralIssues ||
+        billboard.structural.supportCondition === "critical" ||
+        billboard.structural.supportCondition === "poor"
+      ) {
         return {
           isCompliant: false,
           violationMessage: `Structural safety concerns detected (${billboard.structural.supportCondition} condition)`,
           recommendedAction: "Immediate structural inspection and repairs or removal required",
           fineAmount: 2000,
-          urgency: "immediate"
+          urgency: "immediate",
         }
       }
       return { isCompliant: true }
@@ -198,7 +204,7 @@ export const complianceRules: ComplianceRule[] = [
           violationMessage: "Billboard contains prohibited content",
           recommendedAction: "Remove or modify prohibited content",
           fineAmount: 300,
-          urgency: "within_30_days"
+          urgency: "within_30_days",
         }
       }
       return { isCompliant: true }
@@ -217,7 +223,7 @@ export const complianceRules: ComplianceRule[] = [
           violationMessage: "Billboard has prohibited flashing lights - traffic safety hazard",
           recommendedAction: "Immediately disable flashing lights, static illumination only",
           fineAmount: 800,
-          urgency: "immediate"
+          urgency: "immediate",
         }
       }
       return { isCompliant: true }
@@ -264,8 +270,7 @@ export class ComplianceEngine {
         if (rule.severity === "critical") {
           criticalViolations++
           priorityViolations.push({ rule, result })
-        }
-        else if (rule.severity === "high") {
+        } else if (rule.severity === "high") {
           highViolations++
           priorityViolations.push({ rule, result })
         }
@@ -284,7 +289,7 @@ export class ComplianceEngine {
     // Determine risk level with enhanced logic
     let riskLevel: "low" | "medium" | "high" | "critical" = "low"
     if (criticalViolations > 0 || immediateActionRequired) riskLevel = "critical"
-    else if (highViolations > 2 || totalFines > 1000) riskLevel = "high"  
+    else if (highViolations > 2 || totalFines > 1000) riskLevel = "high"
     else if (highViolations > 0 || violations.length > 3) riskLevel = "medium"
 
     return {
@@ -294,7 +299,7 @@ export class ComplianceEngine {
       totalFines,
       riskLevel,
       immediateActionRequired,
-      priorityViolations
+      priorityViolations,
     }
   }
 
@@ -312,12 +317,12 @@ export class ComplianceEngine {
     hasVisibleTrafficSignals: boolean
     estimatedDistanceFromIntersection: number
     estimatedDistanceFromTrafficSignals: number
-  }): Partial<BillboardData['location']> {
+  }): Partial<BillboardData["location"]> {
     return {
       nearIntersection: imageAnalysisData.nearIntersection,
       hasTrafficSignalsVisible: imageAnalysisData.hasVisibleTrafficSignals,
       distanceFromIntersection: imageAnalysisData.estimatedDistanceFromIntersection,
-      distanceFromTrafficSignals: imageAnalysisData.estimatedDistanceFromTrafficSignals
+      distanceFromTrafficSignals: imageAnalysisData.estimatedDistanceFromTrafficSignals,
     }
   }
 }
@@ -331,16 +336,16 @@ export function enhanceAnalysisWithCompliance(
   complianceResults: ReturnType<ComplianceEngine["checkCompliance"]>
 } {
   // Realistic analysis based on image context
-  const isNearIntersection = imageAnalysis?.detectsIntersection ?? false 
-  const hasTrafficSignals = imageAnalysis?.detectsTrafficSignals ?? false 
-  
+  const isNearIntersection = imageAnalysis?.detectsIntersection ?? false
+  const hasTrafficSignals = imageAnalysis?.detectsTrafficSignals ?? false
+
   // More realistic distance estimates for well-positioned billboards
   const estimatedDistance = imageAnalysis?.estimatedDistanceFromIntersection ?? 200 // Reasonable distance
-  
+
   const billboardData: BillboardData = {
     dimensions: {
       width: imageAnalysis?.estimatedWidth || 16,
-      height: imageAnalysis?.estimatedHeight || 9,  
+      height: imageAnalysis?.estimatedHeight || 9,
       area: 0,
     },
     location: {
@@ -348,18 +353,18 @@ export function enhanceAnalysisWithCompliance(
       distanceFromTrafficSignals: imageAnalysis?.distanceFromTrafficSignals || 150, // Safe distance
       zoneType: locationData?.zoneType || "commercial",
       nearIntersection: isNearIntersection,
-      hasTrafficSignalsVisible: hasTrafficSignals
+      hasTrafficSignalsVisible: hasTrafficSignals,
     },
     structural: {
       hasStructuralIssues: imageAnalysis?.structuralIssues ?? false,
-      supportCondition: imageAnalysis?.supportCondition || "good" // Assume good condition unless detected otherwise
+      supportCondition: imageAnalysis?.supportCondition || "good", // Assume good condition unless detected otherwise
     },
     content: {
       hasProhibitedContent: imageAnalysis?.prohibitedContent ?? false,
       isIlluminated: imageAnalysis?.illuminated ?? true,
       flashingLights: imageAnalysis?.flashingLights ?? false, // Assume compliant unless detected
       isDigital: imageAnalysis?.isDigital ?? true,
-      brightnessLevel: imageAnalysis?.brightnessLevel || "medium" // Reasonable brightness
+      brightnessLevel: imageAnalysis?.brightnessLevel || "medium", // Reasonable brightness
     },
   }
 
@@ -379,19 +384,19 @@ export function enhanceAnalysisWithCompliance(
 // Utility function to generate compliance report
 export function generateComplianceReport(
   complianceResults: ReturnType<ComplianceEngine["checkCompliance"]>,
-  billboardData: BillboardData
+  billboardData: BillboardData,
 ): string {
   let report = "=== BILLBOARD COMPLIANCE ANALYSIS REPORT ===\n\n"
-  
+
   report += `Overall Compliance: ${complianceResults.overallCompliance ? "COMPLIANT" : "NON-COMPLIANT"}\n`
   report += `Compliance Score: ${complianceResults.complianceScore}%\n`
   report += `Risk Level: ${complianceResults.riskLevel.toUpperCase()}\n`
   report += `Total Fines: $${complianceResults.totalFines}\n`
-  
+
   if (complianceResults.immediateActionRequired) {
     report += "\n🚨 IMMEDIATE ACTION REQUIRED 🚨\n"
   }
-  
+
   if (complianceResults.violations.length > 0) {
     report += "\n--- VIOLATIONS DETECTED ---\n"
     complianceResults.violations.forEach((violation, index) => {
@@ -402,10 +407,36 @@ export function generateComplianceReport(
         report += `   Fine: $${violation.result.fineAmount}\n`
       }
       if (violation.result.urgency) {
-        report += `   Timeline: ${violation.result.urgency.replace('_', ' ').toUpperCase()}\n`
+        report += `   Timeline: ${violation.result.urgency.replace("_", " ").toUpperCase()}\n`
       }
     })
   }
-  
+
   return report
+}
+
+export function mockAnalyzeImage(imageFile: File): Promise<any> {
+  return new Promise((resolve) => {
+    // Simulate AI processing delay
+    setTimeout(() => {
+      // Generate realistic mock analysis data
+      const mockAnalysis = {
+        estimatedWidth: Math.floor(Math.random() * 10) + 12, // 12-22 feet
+        estimatedHeight: Math.floor(Math.random() * 6) + 6, // 6-12 feet
+        detectsIntersection: Math.random() > 0.7, // 30% chance
+        detectsTrafficSignals: Math.random() > 0.8, // 20% chance
+        estimatedDistanceFromIntersection: Math.floor(Math.random() * 400) + 100, // 100-500 feet
+        distanceFromTrafficSignals: Math.floor(Math.random() * 200) + 100, // 100-300 feet
+        structuralIssues: Math.random() > 0.9, // 10% chance
+        supportCondition: ["good", "fair", "poor"][Math.floor(Math.random() * 3)],
+        prohibitedContent: Math.random() > 0.95, // 5% chance
+        illuminated: Math.random() > 0.2, // 80% chance
+        flashingLights: Math.random() > 0.9, // 10% chance
+        isDigital: Math.random() > 0.4, // 60% chance
+        brightnessLevel: ["low", "medium", "high", "excessive"][Math.floor(Math.random() * 4)],
+      }
+
+      resolve(mockAnalysis)
+    }, 2000) // 2 second delay to simulate processing
+  })
 }
