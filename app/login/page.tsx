@@ -38,41 +38,26 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Mock authentication
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const result = await login({
+        email: loginForm.email,
+        password: loginForm.password,
+      })
 
-    let userRole = "citizen" // default role
-
-    // Determine role based on email patterns
-    if (loginForm.email.includes("admin")) {
-      userRole = "admin"
-    } else if (loginForm.email.includes("inspector")) {
-      userRole = "inspector"
-    } else {
-      userRole = "citizen"
-    }
-
-    // Store user data in localStorage (mock session)
-    const userData = {
-      id: "user-123",
-      email: loginForm.email,
-      firstName: "John",
-      lastName: "Doe",
-      role: userRole as "citizen" | "inspector" | "admin",
-      isAuthenticated: true,
-    }
-
-    login(userData)
-
-    setTimeout(() => {
-      if (userData.role === "admin" || userData.role === "inspector") {
-        window.location.href = "/admin"
-      } else {
-        window.location.href = "/"
+      if (result?.error) {
+        alert("Login failed. Please check your credentials.")
+        return
       }
-    }, 100)
 
-    setIsLoading(false)
+      router.push("/")
+      router.refresh()
+
+    } catch (error) {
+      console.error("Login failed", error)
+      alert("Login failed. Please check your credentials.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -85,29 +70,37 @@ export default function LoginPage() {
 
     setIsLoading(true)
 
-    // Mock registration
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: `${signupForm.firstName} ${signupForm.lastName}`,
+          email: signupForm.email,
+          password: signupForm.password,
+          role: signupForm.role,
+        }),
+      })
 
-    const userData = {
-      id: "user-" + Date.now(),
-      email: signupForm.email,
-      firstName: signupForm.firstName,
-      lastName: signupForm.lastName,
-      role: signupForm.role as "citizen" | "inspector" | "admin",
-      isAuthenticated: true,
-    }
-
-    login(userData)
-
-    setTimeout(() => {
-      if (userData.role === "admin" || userData.role === "inspector") {
-        window.location.href = "/admin"
+      if (res.ok) {
+        // Auto login after signup
+        await login({
+          email: signupForm.email,
+          password: signupForm.password,
+        })
+        router.refresh()
       } else {
-        window.location.href = "/"
+        const data = await res.json()
+        alert(data.message || "Registration failed")
       }
-    }, 100)
-
-    setIsLoading(false)
+    } catch (error) {
+      console.error("Registration error", error)
+      alert("An error occurred during registration")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -178,10 +171,7 @@ export default function LoginPage() {
                   </Button>
 
                   <div className="text-center text-sm text-muted-foreground">
-                    <p>Demo accounts:</p>
-                    <p>Admin: admin@city.gov / password</p>
-                    <p>Inspector: inspector@city.gov / password</p>
-                    <p>Citizen: citizen@email.com / password</p>
+                    <p>Don't have an account? Switch to the Sign Up tab to create one.</p>
                   </div>
                 </form>
               </TabsContent>

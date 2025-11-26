@@ -1,606 +1,204 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import {
-  Upload,
-  Camera,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  MapPin,
-  FileText,
-  LogOut,
-  User,
-  Shield,
-} from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
-import { Badge } from "../components/ui/badge"
-import { Progress } from "../components/ui/progress"
-import { Textarea } from "../components/ui/textarea"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { BillboardAnalyzer } from "../components/billboard-analyzer"
-import { useAuth } from "../components/auth-provider"
-import { enhanceAnalysisWithCompliance } from "../lib/compliance-engine"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { ArrowRight, CheckCircle, Shield, BarChart3, MapPin, Upload, LogOut, LayoutDashboard } from "lucide-react"
+import { Button } from "../components/ui/button"
+import { useAuth } from "@/components/auth-provider"
 
-interface AnalysisResult {
-  id: string
-  status: "compliant" | "violation" | "warning"
-  confidence: number
-  violations: string[]
-  location?: string
-  timestamp: string
-  imageUrl: string
-  description?: string
-  complianceScore?: number
-  totalFines?: number
-  riskLevel?: "low" | "medium" | "high" | "critical"
-}
-
-
-export default function BillboardDetectionApp() {
+export default function LandingPage() {
   const { user, logout } = useAuth()
-  const router = useRouter()
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
-  const [location, setLocation] = useState("")
-  const [description, setDescription] = useState("")
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      setAnalysisResult(null)
-    }
-  }
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    const file = event.dataTransfer.files[0]
-    if (file && file.type.startsWith("image/")) {
-      setSelectedFile(file)
-      setAnalysisResult(null)
-    }
-  }
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-  }
-
-  const handleLogout = () => {
-    logout()
-    router.push("/login")
-  }
-
-  const simulateAnalysis = async () => {
-    if (!selectedFile) return
-
-    setIsAnalyzing(true)
-
-    // Simulate AI analysis delay
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Enhanced analysis with compliance engine
-    const { complianceResults } = enhanceAnalysisWithCompliance(
-      {}, // Mock image analysis results
-      {
-        distanceFromIntersection: Math.random() * 600,
-        distanceFromSchool: Math.random() * 800,
-        zoneType: "commercial",
-      },
-    )
-
-    // Convert compliance results to analysis result format
-    const result: AnalysisResult = {
-      id: Date.now().toString(),
-      status: complianceResults.overallCompliance
-        ? "compliant"
-        : complianceResults.riskLevel === "critical"
-          ? "violation"
-          : "warning",
-      confidence: complianceResults.complianceScore,
-      violations: complianceResults.violations.map((v) => v.result.violationMessage || "Unknown violation"),
-      location: location || "Unknown Location",
-      timestamp: new Date().toISOString(),
-      imageUrl: URL.createObjectURL(selectedFile),
-      description: description,
-      complianceScore: complianceResults.complianceScore,
-      totalFines: complianceResults.totalFines,
-      riskLevel: complianceResults.riskLevel,
-    }
-
-    setAnalysisResult(result)
-    setIsAnalyzing(false)
-  }
-
-  const submitViolationReport = () => {
-    if (!analysisResult || !user) return
-
-    const report = {
-      id: `RPT-${Date.now()}`,
-      status: "pending" as const,
-      priority:
-        analysisResult.riskLevel === "critical"
-          ? ("high" as const)
-          : analysisResult.riskLevel === "high"
-            ? ("high" as const)
-            : analysisResult.riskLevel === "medium"
-              ? ("medium" as const)
-              : ("low" as const),
-      violationType: analysisResult.violations,
-      location: analysisResult.location || "Unknown Location",
-      reportedBy: user.email,
-      reportedAt: analysisResult.timestamp,
-      confidence: analysisResult.confidence,
-      imageUrl: analysisResult.imageUrl,
-      description: analysisResult.description,
-      complianceScore: analysisResult.complianceScore,
-      totalFines: analysisResult.totalFines,
-      riskLevel: analysisResult.riskLevel,
-    }
-
-    // Get existing reports from localStorage
-    const existingReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
-
-    // Add new report
-    const updatedReports = [report, ...existingReports]
-
-    // Save back to localStorage
-    localStorage.setItem("violationReports", JSON.stringify(updatedReports))
-
-    // Show success message
-    alert("Violation report submitted successfully! Authorities will review your report.")
-
-    // Reset form
-    setSelectedFile(null)
-    setAnalysisResult(null)
-    setLocation("")
-    setDescription("")
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
-
-  const generateReport = () => {
-    if (!analysisResult) return
-
-    const reportData = {
-      id: `REPORT-${Date.now()}`,
-      title: "Billboard Compliance Analysis Report",
-      timestamp: new Date().toLocaleString(),
-      location: analysisResult.location || "Unknown Location",
-      status: analysisResult.status,
-      complianceScore: analysisResult.complianceScore,
-      confidence: analysisResult.confidence,
-      violations: analysisResult.violations,
-      riskLevel: analysisResult.riskLevel,
-      totalFines: analysisResult.totalFines,
-      description: analysisResult.description,
-      reportedBy: user?.email || "Anonymous",
-    }
-
-    // Create a formatted report text
-    const reportText = `
-BILLBOARD COMPLIANCE ANALYSIS REPORT
-=====================================
-
-Report ID: ${reportData.id}
-Generated: ${reportData.timestamp}
-Location: ${reportData.location}
-Reported By: ${reportData.reportedBy}
-
-ANALYSIS SUMMARY
-================
-Status: ${reportData.status.toUpperCase()}
-Compliance Score: ${reportData.complianceScore}%
-Confidence Level: ${reportData.confidence}%
-Risk Level: ${reportData.riskLevel?.toUpperCase() || "N/A"}
-
-${
-  reportData.violations.length > 0
-    ? `
-VIOLATIONS DETECTED
-==================
-${reportData.violations.map((violation, index) => `${index + 1}. ${violation}`).join("\n")}
-
-${reportData.totalFines ? `Total Potential Fines: $${reportData.totalFines.toLocaleString()}` : ""}
-`
-    : "No violations detected. Billboard appears to be compliant."
-}
-
-${
-  reportData.description
-    ? `
-ADDITIONAL NOTES
-===============
-${reportData.description}
-`
-    : ""
-}
-
-DISCLAIMER
-==========
-This report is generated by an AI-powered analysis system and should be reviewed by qualified personnel before taking any enforcement action.
-    `.trim()
-
-    // Create and download the report as a text file
-    const blob = new Blob([reportText], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `billboard-report-${reportData.id}.txt`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-
-    alert("Report generated and downloaded successfully!")
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "compliant":
-        return <CheckCircle className="h-5 w-5 text-green-600" />
-      case "violation":
-        return <XCircle className="h-5 w-5 text-destructive" />
-      case "warning":
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />
-      default:
-        return null
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "compliant":
-        return "bg-green-100 text-green-800"
-      case "violation":
-        return "bg-red-100 text-red-800"
-      case "warning":
-        return "bg-yellow-100 text-yellow-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const getRiskLevelColor = (riskLevel?: string) => {
-    switch (riskLevel) {
-      case "critical":
-        return "bg-red-100 text-red-800"
-      case "high":
-        return "bg-orange-100 text-orange-800"
-      case "medium":
-        return "bg-yellow-100 text-yellow-800"
-      case "low":
-        return "bg-green-100 text-green-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-primary">Billboard Detection & Reporting System</h1>
-              <p className="text-muted-foreground mt-2">AI-powered compliance monitoring and violation detection</p>
-            </div>
-            <div className="flex items-center gap-4">
-              {user ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">
-                      {user.firstName} {user.lastName}
-                    </span>
-                    <Badge variant="outline">{user.role}</Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href="/compliance">
-                      <Button variant="outline" size="sm">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Compliance Rules
-                      </Button>
-                    </Link>
-                    <Link href="/public-dashboard">
-                      <Button variant="outline" size="sm">
-                        Public Dashboard
-                      </Button>
-                    </Link>
-                    {(user.role === "admin" || user.role === "inspector") && (
-                      <Link href="/admin">
-                        <Button variant="outline" size="sm">
-                          Admin Portal
-                        </Button>
-                      </Link>
-                    )}
-                    <Button variant="outline" size="sm" onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Link href="/compliance">
-                    <Button variant="outline">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Compliance Rules
-                    </Button>
-                  </Link>
-                  <Link href="/public-dashboard">
-                    <Button variant="outline">Public Dashboard</Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button>Sign In</Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <Link className="flex items-center justify-center" href="/">
+          <Shield className="h-6 w-6 text-primary mr-2" />
+          <span className="font-bold text-xl">BillboardGuard</span>
+        </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+          <Link className="text-sm font-medium hover:text-primary transition-colors" href="#features">
+            Features
+          </Link>
+          <Link className="text-sm font-medium hover:text-primary transition-colors" href="#how-it-works">
+            How It Works
+          </Link>
+          {user ? (
+            <>
+              <Link className="text-sm font-medium hover:text-primary transition-colors flex items-center" href="/dashboard">
+                <LayoutDashboard className="h-4 w-4 mr-1" />
+                Dashboard
+              </Link>
+              <button
+                onClick={() => logout()}
+                className="text-sm font-medium hover:text-primary transition-colors flex items-center"
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link className="text-sm font-medium hover:text-primary transition-colors" href="/login">
+              Sign In
+            </Link>
+          )}
+        </nav>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {!user && (
-          <Card className="mb-8 border-primary/20 bg-card">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <AlertTriangle className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold text-card-foreground">Sign in to submit reports</h3>
-                  <p className="text-sm text-muted-foreground">
-                    You can analyze images without an account, but you'll need to sign in to submit violation reports to
-                    authorities.
-                  </p>
-                </div>
-                <Link href="/login">
-                  <Button>Sign In</Button>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
+                  AI-Powered Billboard Compliance
+                </h1>
+                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                  Automate billboard inspections, detect violations instantly, and ensure regulatory compliance with our advanced AI analysis platform.
+                </p>
+              </div>
+              <div className="space-x-4">
+                <Link href="/dashboard">
+                  <Button size="lg" className="h-12 px-8">
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/public-dashboard">
+                  <Button variant="outline" size="lg" className="h-12 px-8">
+                    View Public Dashboard
+                  </Button>
                 </Link>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upload Section */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="h-5 w-5" />
-                  Upload Billboard Image
-                </CardTitle>
-                <CardDescription>Upload an image of a billboard for AI-powered compliance analysis</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* File Upload Area */}
-                <div
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium mb-2">Drop your image here or click to browse</p>
-                  <p className="text-sm text-muted-foreground">Supports JPG, PNG, WebP up to 10MB</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
-
-                {selectedFile && (
-                  <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <span className="font-medium">{selectedFile.name}</span>
-                    <Badge variant="secondary">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</Badge>
-                  </div>
-                )}
-
-                {/* Location Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location (Optional)</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="location"
-                      placeholder="Enter billboard location or address"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                {/* Description Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Additional Notes (Optional)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe any specific concerns or observations..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <Button onClick={simulateAnalysis} disabled={!selectedFile || isAnalyzing} className="w-full" size="lg">
-                  {isAnalyzing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Analyzing Billboard...
-                    </>
-                  ) : (
-                    <>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Analyze Compliance
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+            </div>
           </div>
+        </section>
 
-          {/* Results Section */}
-          <div className="space-y-6">
-            {isAnalyzing && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI Compliance Analysis in Progress</CardTitle>
-                  <CardDescription>Checking against all compliance regulations...</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Analyzing image...</span>
-                      <span>87%</span>
-                    </div>
-                    <Progress value={87} className="h-2" />
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    • Detecting billboard boundaries and dimensions
-                    <br />• Checking size compliance regulations
-                    <br />• Verifying placement requirements
-                    <br />• Analyzing permit visibility
-                    <br />• Assessing structural condition
-                    <br />• Evaluating content compliance
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {analysisResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {getStatusIcon(analysisResult.status)}
-                    Compliance Analysis Results
-                  </CardTitle>
-                  <CardDescription>
-                    Compliance Score: {analysisResult.complianceScore}% •{" "}
-                    {new Date(analysisResult.timestamp).toLocaleString()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className={getStatusColor(analysisResult.status)}>
-                      {analysisResult.status.toUpperCase()}
-                    </Badge>
-                    {analysisResult.riskLevel && (
-                      <Badge className={getRiskLevelColor(analysisResult.riskLevel)}>
-                        {analysisResult.riskLevel.toUpperCase()} RISK
-                      </Badge>
-                    )}
-                    {analysisResult.location && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {analysisResult.location}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Compliance Score */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Compliance Score</span>
-                      <span className="font-medium">{analysisResult.complianceScore}%</span>
-                    </div>
-                    <Progress value={analysisResult.complianceScore} className="h-3" />
-                  </div>
-
-                  {analysisResult.violations.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-destructive">Detected Violations:</h4>
-                      <ul className="space-y-1">
-                        {analysisResult.violations.map((violation, index) => (
-                          <li key={index} className="flex items-start gap-2 text-sm">
-                            <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                            {violation}
-                          </li>
-                        ))}
-                      </ul>
-                      {analysisResult.totalFines && analysisResult.totalFines > 0 && (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-red-600" />
-                            <span className="font-medium text-red-800">
-                              Potential Fines: ${analysisResult.totalFines.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {analysisResult.status === "compliant" && (
-                    <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="font-medium">Billboard appears to be fully compliant with all regulations</span>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm" onClick={generateReport}>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Generate Report
-                    </Button>
-                    <Link href="/compliance">
-                      <Button variant="outline" size="sm">
-                        <Shield className="h-4 w-4 mr-2" />
-                        View Rules
-                      </Button>
-                    </Link>
-                    {analysisResult.violations.length > 0 && user && (
-                      <Button
-                        size="sm"
-                        className="bg-destructive hover:bg-destructive/90"
-                        onClick={submitViolationReport}
-                      >
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        Submit Violation Report
-                      </Button>
-                    )}
-                    {analysisResult.violations.length > 0 && !user && (
-                      <Link href="/login">
-                        <Button size="sm" className="bg-destructive hover:bg-destructive/90">
-                          <AlertTriangle className="h-4 w-4 mr-2" />
-                          Sign In to Report
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {!isAnalyzing && !analysisResult && (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Shield className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="font-medium mb-2">No Analysis Yet</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Upload a billboard image to start the AI-powered compliance analysis
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+        {/* Features Section */}
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Everything you need for compliance</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Our platform combines computer vision with regulatory databases to provide instant, accurate assessments.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <CheckCircle className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Instant Analysis</h3>
+                <p className="text-muted-foreground">
+                  Upload an image and get immediate feedback on compliance status, potential violations, and risk levels.
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <BarChart3 className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Detailed Reporting</h3>
+                <p className="text-muted-foreground">
+                  Generate comprehensive PDF reports with violation details, fine estimates, and actionable insights.
+                </p>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <MapPin className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Geo-Tagging</h3>
+                <p className="text-muted-foreground">
+                  Automatically map violations and track compliance across different zones and jurisdictions.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">How It Works</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Simple, fast, and effective compliance monitoring in three steps.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3">
+              <div className="relative flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+                  1
+                </div>
+                <h3 className="text-xl font-bold">Upload Image</h3>
+                <p className="text-muted-foreground">
+                  Take a photo or upload an existing image of the billboard you want to inspect.
+                </p>
+              </div>
+              <div className="relative flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+                  2
+                </div>
+                <h3 className="text-xl font-bold">AI Analysis</h3>
+                <p className="text-muted-foreground">
+                  Our AI scans the image for violations against local zoning and advertising regulations.
+                </p>
+              </div>
+              <div className="relative flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+                  3
+                </div>
+                <h3 className="text-xl font-bold">Get Report</h3>
+                <p className="text-muted-foreground">
+                  Receive a detailed compliance report with pass/fail status and recommended actions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  Ready to streamline your compliance?
+                </h2>
+                <p className="mx-auto max-w-[600px] text-primary-foreground/90 md:text-xl">
+                  Join inspectors and city planners using BillboardGuard to maintain visual order.
+                </p>
+              </div>
+              <div className="space-x-4">
+                <Link href="/dashboard">
+                  <Button size="lg" variant="secondary" className="h-12 px-8 text-primary">
+                    Start Analyzing Now
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} BillboardGuard. All rights reserved.
+        </p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Terms of Service
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Privacy
+          </Link>
+        </nav>
+      </footer>
     </div>
   )
 }
