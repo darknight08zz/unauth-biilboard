@@ -33,7 +33,7 @@ function AuthProviderContent({ children }: { children: React.ReactNode }) {
   }
 
   const logout = async () => {
-    await signOut({ callbackUrl: window.location.origin })
+    await signOut({ callbackUrl: "/" })
   }
 
   return (
