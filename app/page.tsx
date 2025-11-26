@@ -30,6 +30,7 @@ export default function LandingPage() {
                 Dashboard
               </Link>
               <button
+                type="button"
                 onClick={() => logout()}
                 className="text-sm font-medium hover:text-primary transition-colors flex items-center"
               >

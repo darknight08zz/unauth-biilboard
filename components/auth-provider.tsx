@@ -33,7 +33,17 @@ function AuthProviderContent({ children }: { children: React.ReactNode }) {
   }
 
   const logout = async () => {
-    await signOut({ callbackUrl: "/" })
+    try {
+      // Force redirect after 1 second if signOut hangs
+      await Promise.race([
+        signOut({ redirect: false }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Logout timeout")), 1000)),
+      ])
+    } catch (error) {
+      console.error("Logout error or timeout:", error)
+    } finally {
+      window.location.href = "/"
+    }
   }
 
   return (
