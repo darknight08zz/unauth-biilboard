@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Upload,
   Camera,
@@ -22,11 +22,10 @@ import { Progress } from "../../components/ui/progress"
 import { Textarea } from "../../components/ui/textarea"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
-import { BillboardAnalyzer } from "../../components/billboard-analyzer"
 import { useAuth } from "../../components/auth-provider"
-import { enhanceAnalysisWithCompliance } from "../../lib/compliance-engine"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import MLAnalyzer from "../../components/MLAnalyzer"
 
 interface AnalysisResult {
   id: string
@@ -40,13 +39,17 @@ interface AnalysisResult {
   complianceScore?: number
   totalFines?: number
   riskLevel?: "low" | "medium" | "high" | "critical"
+  // ML Specifics
+  width?: number
+  height?: number
+  aspectRatio?: number
 }
-
 
 export default function BillboardDetectionApp() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [location, setLocation] = useState("")
@@ -56,8 +59,7 @@ export default function BillboardDetectionApp() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setSelectedFile(file)
-      setAnalysisResult(null)
+      processFile(file)
     }
   }
 
@@ -65,9 +67,17 @@ export default function BillboardDetectionApp() {
     event.preventDefault()
     const file = event.dataTransfer.files[0]
     if (file && file.type.startsWith("image/")) {
-      setSelectedFile(file)
-      setAnalysisResult(null)
+      processFile(file)
     }
+  }
+
+  const processFile = (file: File) => {
+    setSelectedFile(file)
+    setAnalysisResult(null)
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    // Auto-start analysis via MLAnalyzer component
+    setIsAnalyzing(true)
   }
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -79,101 +89,86 @@ export default function BillboardDetectionApp() {
     router.push("/login")
   }
 
-  const handleAnalysis = async () => {
-    if (!selectedFile) return
+  const handleMLComplete = async (mlData: any) => {
+    setIsAnalyzing(false)
 
-    setIsAnalyzing(true)
-    setAnalysisResult(null)
+    // Map ML result to App AnalysisResult
+    const result: AnalysisResult = {
+      id: `ML-${Date.now()}`,
+      status: mlData.compliant ? "compliant" : "violation",
+      confidence: 90, // We can calculate this from detection scores if we want
+      violations: mlData.compliant ? [] : [mlData.details],
+      location: location || "Unknown Location",
+      timestamp: new Date().toISOString(),
+      imageUrl: previewUrl!,
+      description: description,
+      complianceScore: mlData.compliant ? 100 : 40,
+      totalFines: mlData.compliant ? 0 : 500,
+      riskLevel: mlData.compliant ? "low" : "medium",
+      width: mlData.width,
+      height: mlData.height,
+      aspectRatio: mlData.aspectRatio
+    }
+
+    setAnalysisResult(result)
+
+    // Optional: Save to backend immediately or wait for user to "Submit"
+    // For now, we just show the result.
+  }
+
+  const submitViolationReport = async () => {
+    if (!analysisResult || !user || !selectedFile) return
 
     try {
+      // We can now send the data to the backend to save it
       const formData = new FormData()
       formData.append("image", selectedFile)
       formData.append("name", selectedFile.name)
       if (location) formData.append("location", location)
       if (description) formData.append("description", description)
 
+      // Pass the analysis data as JSON string
+      formData.append("analysisData", JSON.stringify({
+        width: analysisResult.width,
+        height: analysisResult.height,
+        aspectRatio: analysisResult.aspectRatio,
+        compliant: analysisResult.status === 'compliant',
+        details: analysisResult.violations.join(', ')
+      }));
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error("Analysis failed")
-      }
+      if (!response.ok) throw new Error("Failed to save report")
 
       const data = await response.json()
-      const analysis = data.analysis
 
-      // Map API result to component state
-      const result: AnalysisResult = {
-        id: data.data._id || Date.now().toString(),
-        status: analysis.compliant ? "compliant" : "violation", // Simple mapping for now
-        confidence: 95, // Mock confidence for now, or derive from analysis
-        violations: analysis.compliant ? [] : [analysis.details],
-        location: location || "Unknown Location",
-        timestamp: new Date().toISOString(),
-        imageUrl: URL.createObjectURL(selectedFile),
-        description: description,
-        complianceScore: analysis.compliant ? 100 : 50, // Mock score
-        totalFines: analysis.compliant ? 0 : 500, // Mock fines
-        riskLevel: analysis.compliant ? "low" : "medium",
+      // Local storage fallback for demo
+      const report = {
+        ...analysisResult,
+        id: data.data?._id || analysisResult.id,
+        reportedBy: user.email,
       }
 
-      setAnalysisResult(result)
+      const existingReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
+      const updatedReports = [report, ...existingReports]
+      localStorage.setItem("violationReports", JSON.stringify(updatedReports))
+
+      alert("Violation report submitted successfully! Authorities will review your report.")
+
+      // Reset
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      setAnalysisResult(null)
+      setLocation("")
+      setDescription("")
+      if (fileInputRef.current) fileInputRef.current.value = ""
 
     } catch (error) {
-      console.error("Analysis error:", error)
-      alert("Failed to analyze image. Please try again.")
-    } finally {
-      setIsAnalyzing(false)
-    }
-  }
-
-  const submitViolationReport = () => {
-    if (!analysisResult || !user) return
-
-    const report = {
-      id: `RPT-${Date.now()}`,
-      status: "pending" as const,
-      priority:
-        analysisResult.riskLevel === "critical"
-          ? ("high" as const)
-          : analysisResult.riskLevel === "high"
-            ? ("high" as const)
-            : analysisResult.riskLevel === "medium"
-              ? ("medium" as const)
-              : ("low" as const),
-      violationType: analysisResult.violations,
-      location: analysisResult.location || "Unknown Location",
-      reportedBy: user.email,
-      reportedAt: analysisResult.timestamp,
-      confidence: analysisResult.confidence,
-      imageUrl: analysisResult.imageUrl,
-      description: analysisResult.description,
-      complianceScore: analysisResult.complianceScore,
-      totalFines: analysisResult.totalFines,
-      riskLevel: analysisResult.riskLevel,
-    }
-
-    // Get existing reports from localStorage
-    const existingReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
-
-    // Add new report
-    const updatedReports = [report, ...existingReports]
-
-    // Save back to localStorage
-    localStorage.setItem("violationReports", JSON.stringify(updatedReports))
-
-    // Show success message
-    alert("Violation report submitted successfully! Authorities will review your report.")
-
-    // Reset form
-    setSelectedFile(null)
-    setAnalysisResult(null)
-    setLocation("")
-    setDescription("")
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      console.error("Error submitting report:", error)
+      alert("Failed to submit report. Please try again.")
     }
   }
 
@@ -181,9 +176,9 @@ export default function BillboardDetectionApp() {
     if (!analysisResult) return
 
     const reportData = {
-      id: `REPORT-${Date.now()}`,
+      id: analysisResult.id,
       title: "Billboard Compliance Analysis Report",
-      timestamp: new Date().toLocaleString(),
+      timestamp: new Date(analysisResult.timestamp).toLocaleString(),
       location: analysisResult.location || "Unknown Location",
       status: analysisResult.status,
       complianceScore: analysisResult.complianceScore,
@@ -193,9 +188,9 @@ export default function BillboardDetectionApp() {
       totalFines: analysisResult.totalFines,
       description: analysisResult.description,
       reportedBy: user?.email || "Anonymous",
+      dimensions: `${analysisResult.width?.toFixed(0)}x${analysisResult.height?.toFixed(0)} px (Approx Ratio: ${analysisResult.aspectRatio?.toFixed(2)})`
     }
 
-    // Create a formatted report text
     const reportText = `
 BILLBOARD COMPLIANCE ANALYSIS REPORT
 =====================================
@@ -211,6 +206,7 @@ Status: ${reportData.status.toUpperCase()}
 Compliance Score: ${reportData.complianceScore}%
 Confidence Level: ${reportData.confidence}%
 Risk Level: ${reportData.riskLevel?.toUpperCase() || "N/A"}
+Dimensions: ${reportData.dimensions}
 
 ${reportData.violations.length > 0
         ? `
@@ -234,10 +230,9 @@ ${reportData.description}
 
 DISCLAIMER
 ==========
-This report is generated by an AI-powered analysis system and should be reviewed by qualified personnel before taking any enforcement action.
+This report is generated by an AI-powered analysis system (YOLO + Depth Estimation) and should be reviewed by qualified personnel.
     `.trim()
 
-    // Create and download the report as a text file
     const blob = new Blob([reportText], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
@@ -392,25 +387,42 @@ This report is generated by an AI-powered analysis system and should be reviewed
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* File Upload Area */}
-                <div
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium mb-2">Drop your image here or click to browse</p>
-                  <p className="text-sm text-muted-foreground">Supports JPG, PNG, WebP up to 10MB</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
+                {!previewUrl ? (
+                  <div
+                    className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium mb-2">Drop your image here or click to browse</p>
+                    <p className="text-sm text-muted-foreground">Supports JPG, PNG, WebP up to 10MB</p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Analysis Preview</h4>
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        setPreviewUrl(null);
+                        setSelectedFile(null);
+                        setAnalysisResult(null);
+                      }}>
+                        Change Image
+                      </Button>
+                    </div>
+                    {/* ML Analyzer Component */}
+                    <MLAnalyzer imageUrl={previewUrl} onAnalysisComplete={handleMLComplete} />
+                  </div>
+                )}
 
-                {selectedFile && (
+                {selectedFile && !previewUrl && (
                   <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                     <FileText className="h-5 w-5 text-primary" />
                     <span className="font-medium">{selectedFile.name}</span>
@@ -444,27 +456,13 @@ This report is generated by an AI-powered analysis system and should be reviewed
                     rows={3}
                   />
                 </div>
-
-                <Button onClick={handleAnalysis} disabled={!selectedFile || isAnalyzing} className="w-full" size="lg">
-                  {isAnalyzing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Analyzing Billboard...
-                    </>
-                  ) : (
-                    <>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Analyze Compliance
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           </div>
 
           {/* Results Section */}
           <div className="space-y-6">
-            {isAnalyzing && (
+            {isAnalyzing && !analysisResult && (
               <Card>
                 <CardHeader>
                   <CardTitle>AI Compliance Analysis in Progress</CardTitle>
@@ -473,18 +471,15 @@ This report is generated by an AI-powered analysis system and should be reviewed
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Analyzing image...</span>
-                      <span>87%</span>
+                      <span>Initializing Neural Networks...</span>
+                      <span>Loading...</span>
                     </div>
-                    <Progress value={87} className="h-2" />
+                    <Progress value={45} className="h-2" />
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    • Detecting billboard boundaries and dimensions
-                    <br />• Checking size compliance regulations
-                    <br />• Verifying placement requirements
-                    <br />• Analyzing permit visibility
-                    <br />• Assessing structural condition
-                    <br />• Evaluating content compliance
+                    • Loading YOLOv8 Object Detection Model...
+                    <br />• Loading Depth Anything Model...
+                    <br />• This runs entirely in your browser!
                   </div>
                 </CardContent>
               </Card>
@@ -529,6 +524,13 @@ This report is generated by an AI-powered analysis system and should be reviewed
                     <Progress value={analysisResult.complianceScore} className="h-3" />
                   </div>
 
+                  {/* Dimensions */}
+                  <div className="p-3 bg-muted rounded-lg text-sm">
+                    <span className="font-semibold">Detected Dimensions:</span> {analysisResult.width?.toFixed(0)} x {analysisResult.height?.toFixed(0)} px
+                    <br />
+                    <span className="font-semibold">Aspect Ratio:</span> {analysisResult.aspectRatio?.toFixed(2)}
+                  </div>
+
                   {analysisResult.violations.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium text-destructive">Detected Violations:</h4>
@@ -571,17 +573,17 @@ This report is generated by an AI-powered analysis system and should be reviewed
                         View Rules
                       </Button>
                     </Link>
-                    {analysisResult.violations.length > 0 && user && (
+                    {user && (
                       <Button
                         size="sm"
-                        className="bg-destructive hover:bg-destructive/90"
+                        className={analysisResult.status === 'compliant' ? "bg-primary" : "bg-destructive hover:bg-destructive/90"}
                         onClick={submitViolationReport}
                       >
                         <AlertTriangle className="h-4 w-4 mr-2" />
-                        Submit Violation Report
+                        {analysisResult.status === 'compliant' ? "Save Report" : "Submit Violation Report"}
                       </Button>
                     )}
-                    {analysisResult.violations.length > 0 && !user && (
+                    {!user && (
                       <Link href="/login">
                         <Button size="sm" className="bg-destructive hover:bg-destructive/90">
                           <AlertTriangle className="h-4 w-4 mr-2" />
