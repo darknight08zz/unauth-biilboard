@@ -15,6 +15,7 @@ export async function POST(req: Request) {
         const formData = await req.formData();
         const file = formData.get("image") as File;
         const name = formData.get("name") as string || "Untitled Billboard";
+        const location = formData.get("location") as string || "Unknown Location";
         const analysisDataString = formData.get("analysisData") as string;
 
         if (!file) {
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
         const billboard = await Billboard.create({
             userId: new mongoose.Types.ObjectId((token.id || token.sub) as string),
             name,
+            location,
             imageUrl: base64Image,
             analysis: {
                 width: analysis.width,

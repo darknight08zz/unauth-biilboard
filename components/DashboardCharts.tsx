@@ -15,27 +15,57 @@ import {
     YAxis,
 } from "recharts"
 import { BarChart3, PieChart } from "lucide-react"
-
-const trendData = [
-    { month: "Jan", compliance: 65, violations: 35 },
-    { month: "Feb", compliance: 59, violations: 41 },
-    { month: "Mar", compliance: 80, violations: 20 },
-    { month: "Apr", compliance: 81, violations: 19 },
-    { month: "May", compliance: 56, violations: 44 },
-    { month: "Jun", compliance: 55, violations: 45 },
-    { month: "Jul", compliance: 40, violations: 60 },
-]
-
-const violationTypeData = [
-    { name: "Zoning", value: 400 },
-    { name: "Content", value: 300 },
-    { name: "Safety", value: 300 },
-    { name: "Permit", value: 200 },
-]
+import { useMemo } from "react"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
-export default function DashboardCharts() {
+interface DashboardChartsProps {
+    billboards: any[]
+}
+
+export default function DashboardCharts({ billboards }: DashboardChartsProps) {
+
+    const trendData = useMemo(() => {
+        // Group by month
+        const months: Record<string, { compliant: number, violations: number }> = {}
+
+        billboards.forEach(b => {
+            const date = new Date(b.createdAt)
+            const month = date.toLocaleString('default', { month: 'short' })
+
+            if (!months[month]) {
+                months[month] = { compliant: 0, violations: 0 }
+            }
+
+            if (b.analysis.compliant) {
+                months[month].compliant++
+            } else {
+                months[month].violations++
+            }
+        })
+
+        return Object.entries(months).map(([month, data]) => ({
+            month,
+            compliance: data.compliant,
+            violations: data.violations
+        })).reverse() // Show oldest to newest if needed, or sort properly
+    }, [billboards])
+
+    const violationTypeData = useMemo(() => {
+        const types: Record<string, number> = {}
+
+        billboards.forEach(b => {
+            if (!b.analysis.compliant) {
+                // Simple extraction of violation type from details string for demo
+                // In real app, we'd have structured violation types
+                const type = b.analysis.details ? b.analysis.details.split(' ')[0] : "General"
+                types[type] = (types[type] || 0) + 1
+            }
+        })
+
+        return Object.entries(types).map(([name, value]) => ({ name, value }))
+    }, [billboards])
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Compliance Trend Chart */}
@@ -46,14 +76,14 @@ export default function DashboardCharts() {
                         Compliance Trends
                     </CardTitle>
                     <CardDescription>
-                        Monthly compliance vs. violation rates over the last 7 months.
+                        Monthly compliance vs. violation rates based on reported data.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={trendData}
+                                data={trendData.length > 0 ? trendData : [{ month: 'No Data', compliance: 0, violations: 0 }]}
                                 margin={{
                                     top: 10,
                                     right: 30,
@@ -82,7 +112,7 @@ export default function DashboardCharts() {
                                     stroke="#22c55e"
                                     fillOpacity={1}
                                     fill="url(#colorCompliance)"
-                                    name="Compliance Score"
+                                    name="Compliant"
                                 />
                                 <Area
                                     type="monotone"
@@ -90,7 +120,7 @@ export default function DashboardCharts() {
                                     stroke="#ef4444"
                                     fillOpacity={1}
                                     fill="url(#colorViolations)"
-                                    name="Violation Rate"
+                                    name="Violations"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -113,7 +143,7 @@ export default function DashboardCharts() {
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={violationTypeData}
+                                data={violationTypeData.length > 0 ? violationTypeData : [{ name: 'No Data', value: 0 }]}
                                 layout="vertical"
                                 margin={{
                                     top: 5,

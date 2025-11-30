@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IBillboard extends Document {
     userId: mongoose.Types.ObjectId;
     name: string;
+    location: string;
     imageUrl: string;
     analysis: {
         width: number;
@@ -24,6 +25,10 @@ const BillboardSchema: Schema<IBillboard> = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please provide a name for the billboard'],
+    },
+    location: {
+        type: String,
+        required: [true, 'Please provide a location'],
     },
     imageUrl: {
         type: String, // Can be a URL or Base64 string

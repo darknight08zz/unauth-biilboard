@@ -23,16 +23,11 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41],
 })
 
-// Mock data for the map
-const locations = [
-  { id: 1, lat: 40.7128, lng: -74.006, status: "violation", address: "123 Broadway, NY", type: "Zoning" },
-  { id: 2, lat: 40.7282, lng: -73.9942, status: "compliant", address: "456 Lafayette St, NY", type: "N/A" },
-  { id: 3, lat: 40.7589, lng: -73.9851, status: "violation", address: "789 7th Ave, NY", type: "Content" },
-  { id: 4, lat: 40.7484, lng: -73.9857, status: "compliant", address: "350 5th Ave, NY", type: "N/A" },
-  { id: 5, lat: 40.7829, lng: -73.9654, status: "warning", address: "Central Park West, NY", type: "Maintenance" },
-]
+interface DashboardMapProps {
+  billboards: any[]
+}
 
-export default function DashboardMap() {
+export default function DashboardMap({ billboards }: DashboardMapProps) {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -46,6 +41,9 @@ export default function DashboardMap() {
       </Card>
     )
   }
+
+  // Fallback center if no data
+  const center: [number, number] = [40.7128, -74.0060]
 
   return (
     <Card className="col-span-1 lg:col-span-2">
@@ -61,42 +59,50 @@ export default function DashboardMap() {
       <CardContent className="p-0">
         <div className="h-[400px] w-full relative z-0">
           <MapContainer
-            center={[40.75, -73.98]}
-            zoom={13}
+            center={center}
+            zoom={10}
             style={{ height: "100%", width: "100%", borderRadius: "0 0 0.5rem 0.5rem" }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {locations.map((loc) => (
-              <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={customIcon}>
-                <Popup>
-                  <div className="p-2 min-w-[150px]">
-                    <h3 className="font-bold text-sm mb-1">{loc.address}</h3>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge
-                        variant={loc.status === "compliant" ? "default" : "destructive"}
-                        className={
-                          loc.status === "compliant"
-                            ? "bg-green-500 hover:bg-green-600"
-                            : loc.status === "warning"
-                            ? "bg-yellow-500 hover:bg-yellow-600"
-                            : "bg-red-500 hover:bg-red-600"
-                        }
-                      >
-                        {loc.status.toUpperCase()}
-                      </Badge>
+            {billboards.map((billboard) => {
+              // Simple random offset for demo purposes if we don't have real coords yet
+              // In a real app, we'd geocode the address string to lat/lng
+              // For now, let's just show them if we can (or skip if no lat/lng)
+              // Since we only have 'location' string, we can't plot them accurately without geocoding.
+              // For this MVP, we will simulate positions around NYC for demo if string is present.
+              const lat = 40.7128 + (Math.random() - 0.5) * 0.1;
+              const lng = -74.0060 + (Math.random() - 0.5) * 0.1;
+
+              return (
+                <Marker key={billboard._id} position={[lat, lng]} icon={customIcon}>
+                  <Popup>
+                    <div className="p-2 min-w-[150px]">
+                      <h3 className="font-bold text-sm mb-1">{billboard.location}</h3>
+                      <div className="flex items-center justify-between mt-2">
+                        <Badge
+                          variant={billboard.analysis.compliant ? "default" : "destructive"}
+                          className={
+                            billboard.analysis.compliant
+                              ? "bg-green-500 hover:bg-green-600"
+                              : "bg-red-500 hover:bg-red-600"
+                          }
+                        >
+                          {billboard.analysis.compliant ? "COMPLIANT" : "VIOLATION"}
+                        </Badge>
+                      </div>
+                      {!billboard.analysis.compliant && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Issue: {billboard.analysis.details || "Unknown Violation"}
+                        </p>
+                      )}
                     </div>
-                    {loc.status !== "compliant" && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Issue: {loc.type}
-                      </p>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+                  </Popup>
+                </Marker>
+              )
+            })}
           </MapContainer>
         </div>
       </CardContent>
