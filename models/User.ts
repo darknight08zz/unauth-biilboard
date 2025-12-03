@@ -5,6 +5,8 @@ export interface IUser extends Document {
     email: string;
     password?: string;
     role: 'citizen' | 'inspector' | 'admin';
+    points: number;
+    badges: string[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -28,6 +30,14 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
         type: String,
         enum: ['citizen', 'inspector', 'admin'],
         default: 'citizen',
+    },
+    points: {
+        type: Number,
+        default: 0,
+    },
+    badges: {
+        type: [String],
+        default: [],
     },
 }, { timestamps: true });
 

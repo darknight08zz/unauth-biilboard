@@ -49,16 +49,16 @@ export const complianceRules: ComplianceRule[] = [
     id: "SIZE_001",
     category: "size",
     name: "Maximum Size Limit",
-    description: "Billboard must not exceed 120 square feet in commercial zones",
+    description: "Billboard must not exceed 800 square feet (Bengaluru Bylaws 2024)",
     severity: "high",
     checkFunction: (billboard: BillboardData): ComplianceResult => {
-      const maxArea = billboard.location.zoneType === "highway" ? 200 : 120
+      const maxArea = billboard.location.zoneType === "highway" ? 1200 : 800
       if (billboard.dimensions.area > maxArea) {
         return {
           isCompliant: false,
           violationMessage: `Billboard exceeds maximum size limit (${billboard.dimensions.area} sq ft > ${maxArea} sq ft)`,
-          recommendedAction: "Reduce billboard size or relocate to appropriate zone",
-          fineAmount: 500,
+          recommendedAction: "Reduce billboard size to comply with Municipal Corporation Bylaws",
+          fineAmount: 50000,
           urgency: "within_60_days",
         }
       }
@@ -80,7 +80,7 @@ export const complianceRules: ComplianceRule[] = [
             isCompliant: false,
             violationMessage: `Billboard critically positioned too close to signalized intersection (estimated ${distance} ft < required 300 ft minimum)`,
             recommendedAction: "IMMEDIATE relocation required - poses traffic safety hazard",
-            fineAmount: 1500,
+            fineAmount: 150000,
             urgency: "immediate",
           }
         }
@@ -95,7 +95,7 @@ export const complianceRules: ComplianceRule[] = [
           isCompliant: false,
           violationMessage: `Billboard too close to intersection (${billboard.location.distanceFromIntersection} ft < 300 ft required)`,
           recommendedAction: "Relocate billboard to maintain 300ft minimum distance from intersection",
-          fineAmount: 750,
+          fineAmount: 75000,
           urgency: "within_30_days",
         }
       }
@@ -118,7 +118,7 @@ export const complianceRules: ComplianceRule[] = [
           isCompliant: false,
           violationMessage: `Billboard may obstruct traffic signal visibility (${billboard.location.distanceFromTrafficSignals} ft from signals)`,
           recommendedAction: "Conduct visibility impact study and relocate if necessary",
-          fineAmount: 2000,
+          fineAmount: 200000,
           urgency: "immediate",
         }
       }
@@ -141,7 +141,7 @@ export const complianceRules: ComplianceRule[] = [
             isCompliant: false,
             violationMessage: `Digital billboard too close to intersection (${distance} ft < ${minDistance} ft required for digital signage)`,
             recommendedAction: "Relocate digital billboard or convert to static signage",
-            fineAmount: 1200,
+            fineAmount: 120000,
             urgency: "within_30_days",
           }
         }
@@ -161,7 +161,7 @@ export const complianceRules: ComplianceRule[] = [
           isCompliant: false,
           violationMessage: "Digital billboard brightness exceeds safe levels for traffic areas",
           recommendedAction: "Install automatic brightness controls and reduce daytime brightness",
-          fineAmount: 600,
+          fineAmount: 60000,
           urgency: "within_30_days",
         }
       }
@@ -184,7 +184,7 @@ export const complianceRules: ComplianceRule[] = [
           isCompliant: false,
           violationMessage: `Structural safety concerns detected (${billboard.structural.supportCondition} condition)`,
           recommendedAction: "Immediate structural inspection and repairs or removal required",
-          fineAmount: 2000,
+          fineAmount: 200000,
           urgency: "immediate",
         }
       }
@@ -201,9 +201,9 @@ export const complianceRules: ComplianceRule[] = [
       if (billboard.content.hasProhibitedContent) {
         return {
           isCompliant: false,
-          violationMessage: "Billboard contains prohibited content",
+          violationMessage: "Billboard contains prohibited content (ASCI Guidelines)",
           recommendedAction: "Remove or modify prohibited content",
-          fineAmount: 300,
+          fineAmount: 30000,
           urgency: "within_30_days",
         }
       }
@@ -222,7 +222,7 @@ export const complianceRules: ComplianceRule[] = [
           isCompliant: false,
           violationMessage: "Billboard has prohibited flashing lights - traffic safety hazard",
           recommendedAction: "Immediately disable flashing lights, static illumination only",
-          fineAmount: 800,
+          fineAmount: 80000,
           urgency: "immediate",
         }
       }
@@ -391,7 +391,7 @@ export function generateComplianceReport(
   report += `Overall Compliance: ${complianceResults.overallCompliance ? "COMPLIANT" : "NON-COMPLIANT"}\n`
   report += `Compliance Score: ${complianceResults.complianceScore}%\n`
   report += `Risk Level: ${complianceResults.riskLevel.toUpperCase()}\n`
-  report += `Total Fines: $${complianceResults.totalFines}\n`
+  report += `Total Fines: ₹${complianceResults.totalFines.toLocaleString('en-IN')}\n`
 
   if (complianceResults.immediateActionRequired) {
     report += "\n🚨 IMMEDIATE ACTION REQUIRED 🚨\n"
@@ -404,7 +404,7 @@ export function generateComplianceReport(
       report += `   ${violation.result.violationMessage}\n`
       report += `   Action Required: ${violation.result.recommendedAction}\n`
       if (violation.result.fineAmount) {
-        report += `   Fine: $${violation.result.fineAmount}\n`
+        report += `   Fine: ₹${violation.result.fineAmount.toLocaleString('en-IN')}\n`
       }
       if (violation.result.urgency) {
         report += `   Timeline: ${violation.result.urgency.replace("_", " ").toUpperCase()}\n`

@@ -16,6 +16,11 @@ export interface IBillboard extends Document {
         compliant: boolean;
         details: string;
     };
+    userFeedback?: {
+        isCorrect: boolean;
+        correction?: string;
+        submittedAt: Date;
+    };
     createdAt: Date;
     updatedAt: Date;
 }
@@ -48,6 +53,11 @@ const BillboardSchema: Schema<IBillboard> = new mongoose.Schema({
         aspectRatio: Number,
         compliant: Boolean,
         details: String,
+    },
+    userFeedback: {
+        isCorrect: Boolean,
+        correction: String,
+        submittedAt: Date,
     },
 }, { timestamps: true });
 

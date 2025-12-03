@@ -79,9 +79,9 @@ export default function CompliancePage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-primary">Billboard Compliance Rules</h1>
+              <h1 className="text-3xl font-bold text-primary">Billboard Compliance Rules (India)</h1>
               <p className="text-muted-foreground mt-2">
-                Comprehensive regulations and compliance requirements for billboard installations
+                Based on Supreme Court Mandates, ASCI Guidelines, and Municipal Corporation Bylaws (2024-2025)
               </p>
             </div>
             <div className="flex gap-2">
@@ -307,28 +307,28 @@ export default function CompliancePage() {
                             <XCircle className="h-4 w-4 text-red-600" />
                             <span className="font-medium">Critical</span>
                           </div>
-                          <Badge className="bg-red-100 text-red-800">$1,500 - $2,000</Badge>
+                          <Badge className="bg-red-100 text-red-800">₹1,50,000 - ₹2,00,000</Badge>
                         </div>
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4 text-orange-600" />
                             <span className="font-medium">High</span>
                           </div>
-                          <Badge className="bg-orange-100 text-orange-800">$500 - $1,000</Badge>
+                          <Badge className="bg-orange-100 text-orange-800">₹50,000 - ₹1,00,000</Badge>
                         </div>
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4 text-yellow-600" />
                             <span className="font-medium">Medium</span>
                           </div>
-                          <Badge className="bg-yellow-100 text-yellow-800">$250 - $400</Badge>
+                          <Badge className="bg-yellow-100 text-yellow-800">₹25,000 - ₹40,000</Badge>
                         </div>
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
                             <span className="font-medium">Low</span>
                           </div>
-                          <Badge className="bg-green-100 text-green-800">$100 - $250</Badge>
+                          <Badge className="bg-green-100 text-green-800">₹10,000 - ₹25,000</Badge>
                         </div>
                       </div>
                     </div>

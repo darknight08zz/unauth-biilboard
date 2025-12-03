@@ -10,7 +10,8 @@ import { MapPin } from "lucide-react"
 import MarkerClusterGroup from "react-leaflet-cluster"
 import "leaflet.heat"
 import { Button } from "./ui/button"
-import { Layers, Grid, Activity } from "lucide-react"
+import { Layers, Grid, Activity, ThumbsUp, ThumbsDown, Check } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 // Fix for default marker icons in Leaflet with Next.js
 const iconUrl = "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png"
@@ -71,6 +72,26 @@ function HeatmapLayer({ points }: { points: [number, number, number][] }) {
 export default function DashboardMap({ billboards, focusedLocation }: DashboardMapProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [viewMode, setViewMode] = useState<"markers" | "clusters" | "heatmap">("clusters")
+  const { toast } = useToast()
+
+  const handleFeedback = async (billboardId: string, isCorrect: boolean) => {
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ billboardId, isCorrect }),
+      })
+
+      if (res.ok) {
+        toast({
+          title: "Feedback Received",
+          description: "Thank you for helping improve our AI model!",
+        })
+      }
+    } catch (error) {
+      console.error("Feedback error:", error)
+    }
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -204,6 +225,29 @@ export default function DashboardMap({ billboards, focusedLocation }: DashboardM
                                 Issue: {billboard.analysis.details || "Unknown Violation"}
                               </p>
                             )}
+                            <div className="flex gap-2 mt-3 pt-2 border-t">
+                              <p className="text-[10px] text-muted-foreground w-full text-center mb-1">Is this correct?</p>
+                            </div>
+                            <div className="flex justify-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleFeedback(billboard._id, true)}
+                                title="Correct Analysis"
+                              >
+                                <ThumbsUp className="h-3 w-3 text-green-600" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleFeedback(billboard._id, false)}
+                                title="Incorrect Analysis"
+                              >
+                                <ThumbsDown className="h-3 w-3 text-red-600" />
+                              </Button>
+                            </div>
                           </div>
                         </Popup>
                       </Marker>

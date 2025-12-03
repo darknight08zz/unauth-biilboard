@@ -12,6 +12,8 @@ import {
   Phone,
   Mail,
   LogOut,
+  Shield,
+  User,
 } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
@@ -169,31 +171,46 @@ export default function PublicDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-primary">City Billboard Compliance Dashboard</h1>
-              <p className="text-muted-foreground mt-2">Public transparency portal for billboard regulations and compliance</p>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Shield className="h-6 w-6 text-primary" />
             </div>
-            <div className="flex gap-2">
-              <Link href="/dashboard">
-                <Button variant="outline">Back to Analysis Dashboard</Button>
-              </Link>
-              {user ? (
-                <Button variant="outline" onClick={() => {
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">BillboardGuard Public Data</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analysis Dashboard
+              </Button>
+            </Link>
+            <div className="h-6 w-px bg-border hidden md:block" />
+            {user ? (
+              <>
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={() => {
                   logout()
                   router.push("/login")
                 }}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
-              ) : (
-                <Link href="/login">
-                  <Button variant="outline">Login</Button>
-                </Link>
-              )}
-            </div>
+              </>
+            ) : (
+              <Link href="/login">
+                <Button variant="default" size="sm">Login</Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

@@ -56,6 +56,9 @@
     "globals": "latest",
     "input-otp": "latest",
     "jiti": "latest",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "less": "latest",
@@ -97,6 +100,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

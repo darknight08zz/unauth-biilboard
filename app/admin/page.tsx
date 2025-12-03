@@ -13,8 +13,13 @@ import {
   Search,
   LogOut,
   Home,
+  User,
   Trash2,
+  FileDown,
+  Shield,
 } from "lucide-react"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -55,6 +60,14 @@ interface ViolationReport {
   violationType: string[]
   location: string
   reportedBy: string
+  createdAt: string
+  analysis: {
+    compliant: boolean
+    details: string
+    width?: number
+    height?: number
+    aspectRatio?: number
+  }
   reportedAt: string
   confidence: number
   imageUrl: string
@@ -106,6 +119,34 @@ function AdminDashboardContent() {
   useEffect(() => {
     fetchReports()
   }, [])
+
+  const exportToPDF = () => {
+    const doc = new jsPDF()
+
+    doc.setFontSize(18)
+    doc.text("Billboard Violation Report", 14, 22)
+
+    doc.setFontSize(11)
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30)
+
+    const tableData = reports.map((report) => [
+      new Date(report.createdAt).toLocaleDateString(),
+      report.location,
+      report.analysis.compliant ? "Compliant" : "Violation",
+      report.status,
+      report.analysis.details || "N/A",
+    ])
+
+    autoTable(doc, {
+      head: [["Date", "Location", "Result", "Status", "Details"]],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [22, 163, 74] }, // Green header
+    })
+
+    doc.save("billboard-report.pdf")
+  }
 
   const filteredReports = reports.filter((report) => {
     const matchesStatus = statusFilter === "all" || report.status === statusFilter
@@ -306,41 +347,48 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
             <div>
-              <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
-              <p className="text-muted-foreground mt-2">Billboard violation reports and compliance management</p>
+              <h1 className="text-lg font-bold tracking-tight">Admin Dashboard</h1>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleGoHome}>
-                <Home className="h-4 w-4 mr-2" />
-                Home
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analysis
               </Button>
-              <Link href="/dashboard">
-                <Button variant="outline">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Back to Analysis Dashboard
-                </Button>
-              </Link>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+            </Link>
+            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+            <Button variant="outline" size="sm" onClick={fetchReports} title="Refresh Data">
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportReports} title="Export CSV">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportToPDF} title="Export PDF">
+              <FileDown className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={generateSummary} title="Generate Summary">
+              <FileText className="h-4 w-4" />
+            </Button>
+            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+            <Link href="/profile">
+              <Button variant="ghost" size="sm">
+                <User className="h-4 w-4 mr-2" />
+                Profile
               </Button>
-              <Button variant="outline" onClick={fetchReports}>
-                <Eye className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              <Button variant="outline" onClick={exportReports}>
-                <Download className="h-4 w-4 mr-2" />
-                Export Reports
-              </Button>
-              <Button onClick={generateSummary}>
-                <FileText className="h-4 w-4 mr-2" />
-                Generate Summary
-              </Button>
-            </div>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
       </header>
