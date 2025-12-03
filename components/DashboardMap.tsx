@@ -7,6 +7,10 @@ import L from "leaflet"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { MapPin } from "lucide-react"
+import MarkerClusterGroup from "react-leaflet-cluster"
+import "leaflet.heat"
+import { Button } from "./ui/button"
+import { Layers, Grid, Activity } from "lucide-react"
 
 // Fix for default marker icons in Leaflet with Next.js
 const iconUrl = "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png"
@@ -40,10 +44,33 @@ function MapUpdater({ center }: { center: [number, number] }) {
   }, [center, map])
 
   return null
+  return null
+}
+
+function HeatmapLayer({ points }: { points: [number, number, number][] }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!points.length) return
+
+    // @ts-ignore - leaflet.heat extends L but types aren't always available
+    const heat = L.heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 10,
+    }).addTo(map)
+
+    return () => {
+      map.removeLayer(heat)
+    }
+  }, [map, points])
+
+  return null
 }
 
 export default function DashboardMap({ billboards, focusedLocation }: DashboardMapProps) {
   const [isMounted, setIsMounted] = useState(false)
+  const [viewMode, setViewMode] = useState<"markers" | "clusters" | "heatmap">("clusters")
 
   useEffect(() => {
     setIsMounted(true)
@@ -66,13 +93,43 @@ export default function DashboardMap({ billboards, focusedLocation }: DashboardM
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Geographic Insights
-        </CardTitle>
-        <CardDescription>
-          Visualize violation hotspots and compliance status across the city.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Geographic Insights
+            </CardTitle>
+            <CardDescription>
+              Visualize violation hotspots and compliance status across the city.
+            </CardDescription>
+          </div>
+          <div className="flex gap-1 bg-muted p-1 rounded-lg">
+            <Button
+              variant={viewMode === "markers" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("markers")}
+              title="Standard Markers"
+            >
+              <MapPin className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "clusters" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("clusters")}
+              title="Clustered View"
+            >
+              <Layers className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "heatmap" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("heatmap")}
+              title="Heatmap Density"
+            >
+              <Activity className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="h-[400px] w-full relative z-0">
@@ -98,49 +155,102 @@ export default function DashboardMap({ billboards, focusedLocation }: DashboardM
               </Marker>
             )}
 
-            {billboards.map((billboard) => {
-              // Simple random offset for demo purposes if we don't have real coords yet
-              // In a real app, we'd geocode the address string to lat/lng
-              // For now, let's just show them if we can (or skip if no lat/lng)
-              // Since we only have 'location' string, we can't plot them accurately without geocoding.
-              // For this MVP, we will simulate positions around NYC for demo if string is present.
-              // Use real coordinates if available, otherwise fallback to random offset around NYC (or 0,0)
-              let lat = billboard.coordinates?.lat;
-              let lng = billboard.coordinates?.lng;
+            {viewMode === "heatmap" && (
+              <HeatmapLayer
+                points={billboards
+                  .map((b) => {
+                    const lat = b.coordinates?.lat || (40.7128 + (Math.random() - 0.5) * 0.1)
+                    const lng = b.coordinates?.lng || (-74.0060 + (Math.random() - 0.5) * 0.1)
+                    // Intensity: 1.0 for violation, 0.3 for compliant
+                    const intensity = b.analysis.compliant ? 0.3 : 1.0
+                    return [lat, lng, intensity] as [number, number, number]
+                  })}
+              />
+            )}
 
-              if (!lat || !lng) {
-                // Fallback for old data without coords
-                lat = 40.7128 + (Math.random() - 0.5) * 0.1;
-                lng = -74.0060 + (Math.random() - 0.5) * 0.1;
-              }
+            {viewMode !== "heatmap" && (
+              viewMode === "clusters" ? (
+                <MarkerClusterGroup chunkedLoading>
+                  {billboards.map((billboard) => {
+                    // Use real coordinates if available, otherwise fallback to random offset around NYC (or 0,0)
+                    let lat = billboard.coordinates?.lat;
+                    let lng = billboard.coordinates?.lng;
 
-              return (
-                <Marker key={billboard._id} position={[lat, lng]} icon={customIcon}>
-                  <Popup>
-                    <div className="p-2 min-w-[150px]">
-                      <h3 className="font-bold text-sm mb-1">{billboard.location}</h3>
-                      <div className="flex items-center justify-between mt-2">
-                        <Badge
-                          variant={billboard.analysis.compliant ? "default" : "destructive"}
-                          className={
-                            billboard.analysis.compliant
-                              ? "bg-green-500 hover:bg-green-600"
-                              : "bg-red-500 hover:bg-red-600"
-                          }
-                        >
-                          {billboard.analysis.compliant ? "COMPLIANT" : "VIOLATION"}
-                        </Badge>
-                      </div>
-                      {!billboard.analysis.compliant && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Issue: {billboard.analysis.details || "Unknown Violation"}
-                        </p>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
+                    if (!lat || !lng) {
+                      // Fallback for old data without coords
+                      lat = 40.7128 + (Math.random() - 0.5) * 0.1;
+                      lng = -74.0060 + (Math.random() - 0.5) * 0.1;
+                    }
+
+                    return (
+                      <Marker key={billboard._id} position={[lat, lng]} icon={customIcon}>
+                        <Popup>
+                          <div className="p-2 min-w-[150px]">
+                            <h3 className="font-bold text-sm mb-1">{billboard.location}</h3>
+                            <div className="flex items-center justify-between mt-2">
+                              <Badge
+                                variant={billboard.analysis.compliant ? "default" : "destructive"}
+                                className={
+                                  billboard.analysis.compliant
+                                    ? "bg-green-500 hover:bg-green-600"
+                                    : "bg-red-500 hover:bg-red-600"
+                                }
+                              >
+                                {billboard.analysis.compliant ? "COMPLIANT" : "VIOLATION"}
+                              </Badge>
+                            </div>
+                            {!billboard.analysis.compliant && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Issue: {billboard.analysis.details || "Unknown Violation"}
+                              </p>
+                            )}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )
+                  })}
+                </MarkerClusterGroup>
+              ) : (
+                billboards.map((billboard) => {
+                  // Use real coordinates if available, otherwise fallback to random offset around NYC (or 0,0)
+                  let lat = billboard.coordinates?.lat;
+                  let lng = billboard.coordinates?.lng;
+
+                  if (!lat || !lng) {
+                    // Fallback for old data without coords
+                    lat = 40.7128 + (Math.random() - 0.5) * 0.1;
+                    lng = -74.0060 + (Math.random() - 0.5) * 0.1;
+                  }
+
+                  return (
+                    <Marker key={billboard._id} position={[lat, lng]} icon={customIcon}>
+                      <Popup>
+                        <div className="p-2 min-w-[150px]">
+                          <h3 className="font-bold text-sm mb-1">{billboard.location}</h3>
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge
+                              variant={billboard.analysis.compliant ? "default" : "destructive"}
+                              className={
+                                billboard.analysis.compliant
+                                  ? "bg-green-500 hover:bg-green-600"
+                                  : "bg-red-500 hover:bg-red-600"
+                              }
+                            >
+                              {billboard.analysis.compliant ? "COMPLIANT" : "VIOLATION"}
+                            </Badge>
+                          </div>
+                          {!billboard.analysis.compliant && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Issue: {billboard.analysis.details || "Unknown Violation"}
+                            </p>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )
+                })
               )
-            })}
+            )}
           </MapContainer>
         </div>
       </CardContent>

@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Space_Grotesk, DM_Sans } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/components/auth-provider"
@@ -21,6 +21,19 @@ export const metadata: Metadata = {
   title: "Billboard Detection & Reporting System",
   description: "AI-powered billboard compliance monitoring and violation reporting platform",
   generator: "v0.app",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BillboardGuard",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({
