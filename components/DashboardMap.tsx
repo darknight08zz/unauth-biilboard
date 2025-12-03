@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
@@ -25,9 +25,24 @@ const customIcon = new L.Icon({
 
 interface DashboardMapProps {
   billboards: any[]
+  focusedLocation?: { lat: number; lng: number } | null
 }
 
-export default function DashboardMap({ billboards }: DashboardMapProps) {
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+      map.flyTo(center, 13, {
+        duration: 1.5
+      })
+    }
+  }, [center, map])
+
+  return null
+}
+
+export default function DashboardMap({ billboards, focusedLocation }: DashboardMapProps) {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -43,7 +58,10 @@ export default function DashboardMap({ billboards }: DashboardMapProps) {
   }
 
   // Fallback center if no data
-  const center: [number, number] = [40.7128, -74.0060]
+  const defaultCenter: [number, number] = [40.7128, -74.0060]
+  const center: [number, number] = focusedLocation
+    ? [focusedLocation.lat, focusedLocation.lng]
+    : defaultCenter
 
   return (
     <Card className="col-span-1 lg:col-span-2">
@@ -63,10 +81,23 @@ export default function DashboardMap({ billboards }: DashboardMapProps) {
             zoom={10}
             style={{ height: "100%", width: "100%", borderRadius: "0 0 0.5rem 0.5rem" }}
           >
+            <MapUpdater center={center} />
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
             />
+
+            {/* Focused Location Marker */}
+            {focusedLocation && (
+              <Marker position={[focusedLocation.lat, focusedLocation.lng]} icon={customIcon}>
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-bold text-sm">Selected Location</h3>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
             {billboards.map((billboard) => {
               // Simple random offset for demo purposes if we don't have real coords yet
               // In a real app, we'd geocode the address string to lat/lng
@@ -109,3 +140,4 @@ export default function DashboardMap({ billboards }: DashboardMapProps) {
     </Card>
   )
 }
+
