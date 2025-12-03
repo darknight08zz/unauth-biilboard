@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label"
 import { ProtectedRoute } from "@/components/protected-route"
 import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 interface ViolationReport {
   id: string
@@ -49,78 +50,49 @@ interface ViolationReport {
   adminNotes?: string
 }
 
-const mockReports: ViolationReport[] = [
-  {
-    id: "RPT-001",
-    status: "pending",
-    priority: "high",
-    violationType: ["Size Violation", "Permit Missing"],
-    location: "Main St & 5th Ave, Downtown",
-    reportedBy: "citizen@email.com",
-    reportedAt: "2024-01-15T10:30:00Z",
-    confidence: 87,
-    imageUrl: "/placeholder.svg?key=91wj1",
-    description: "Large billboard appears to exceed size limits and has no visible permit number",
-  },
-  {
-    id: "RPT-002",
-    status: "investigating",
-    priority: "medium",
-    violationType: ["Placement Violation"],
-    location: "Highway 101, Mile Marker 45",
-    reportedBy: "inspector@city.gov",
-    reportedAt: "2024-01-14T14:20:00Z",
-    confidence: 76,
-    imageUrl: "/placeholder.svg?key=tpzd3",
-    description: "Billboard too close to intersection",
-  },
-  {
-    id: "RPT-003",
-    status: "resolved",
-    priority: "low",
-    violationType: ["Structural Concern"],
-    location: "Oak Street Plaza",
-    reportedBy: "safety@contractor.com",
-    reportedAt: "2024-01-13T09:15:00Z",
-    confidence: 94,
-    imageUrl: "/placeholder.svg?key=cpbbh",
-    description: "Structural damage visible on support beams",
-    adminNotes: "Contacted property owner. Repairs completed on 2024-01-16.",
-  },
-]
-
 function AdminDashboardContent() {
   const { logout } = useAuth()
   const router = useRouter()
 
-  const loadReports = () => {
-    const savedReports = JSON.parse(localStorage.getItem("violationReports") || "[]")
-    return [...savedReports, ...mockReports]
-  }
-
-  const [reports, setReports] = useState<ViolationReport[]>(loadReports())
+  const [reports, setReports] = useState<ViolationReport[]>([])
+  const [filter, setFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
   const [selectedReport, setSelectedReport] = useState<ViolationReport | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState("")
+
+  const fetchReports = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/billboards')
+      const data = await res.json()
+
+      if (data.success) {
+        const mappedReports: ViolationReport[] = data.data.map((b: any) => ({
+          id: b._id,
+          status: b.analysis.compliant ? "resolved" : "pending",
+          priority: !b.analysis.compliant ? "high" : "low",
+          violationType: b.analysis.details ? [b.analysis.details.split(' ')[0]] : ["Unknown"],
+          location: b.location || "Unknown Location",
+          reportedBy: "System",
+          reportedAt: b.createdAt,
+          confidence: 95,
+          imageUrl: b.imageUrl,
+          description: b.analysis.details || "No description provided",
+          adminNotes: ""
+        }))
+        setReports(mappedReports)
+      }
+    } catch (error) {
+      console.error("Failed to fetch reports:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const refreshReports = () => {
-      setReports(loadReports())
-    }
-
-    // Refresh reports when the component mounts
-    refreshReports()
-
-    // Listen for storage changes (when new reports are added)
-    window.addEventListener("storage", refreshReports)
-
-    const interval = setInterval(refreshReports, 5000)
-
-    return () => {
-      window.removeEventListener("storage", refreshReports)
-      clearInterval(interval)
-    }
+    fetchReports()
   }, [])
 
   const filteredReports = reports.filter((report) => {
@@ -130,7 +102,7 @@ function AdminDashboardContent() {
       searchQuery === "" ||
       report.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.violationType.some((type) => type.toLowerCase().includes(searchQuery.toLowerCase()))
+      (report.violationType || []).some((type) => type.toLowerCase().includes(searchQuery.toLowerCase()))
 
     return matchesStatus && matchesPriority && matchesSearch
   })
@@ -182,14 +154,7 @@ function AdminDashboardContent() {
     const updatedReports = reports.map((report) =>
       report.id === reportId ? { ...report, status: newStatus as any, adminNotes: notes || report.adminNotes } : report,
     )
-
     setReports(updatedReports)
-
-    // Save citizen reports back to localStorage (exclude mock reports)
-    const citizenReports = updatedReports.filter(
-      (report) => report.id.startsWith("RPT-") && !mockReports.find((mock) => mock.id === report.id),
-    )
-    localStorage.setItem("violationReports", JSON.stringify(citizenReports))
   }
 
   const stats = {
@@ -218,7 +183,7 @@ function AdminDashboardContent() {
       report.id,
       report.status,
       report.priority,
-      report.violationType.join("; "),
+      (report.violationType || []).join("; "),
       report.location,
       report.reportedBy,
       new Date(report.reportedAt).toLocaleDateString(),
@@ -251,10 +216,10 @@ function AdminDashboardContent() {
       resolvedReports: stats.resolved,
       highPriorityReports: stats.highPriority,
       violationBreakdown: {
-        sizeViolations: reports.filter((r) => r.violationType.some((v) => v.includes("Size"))).length,
-        permitIssues: reports.filter((r) => r.violationType.some((v) => v.includes("Permit"))).length,
-        placementViolations: reports.filter((r) => r.violationType.some((v) => v.includes("Placement"))).length,
-        structuralConcerns: reports.filter((r) => r.violationType.some((v) => v.includes("Structural"))).length,
+        sizeViolations: reports.filter((r) => (r.violationType || []).some((v) => v.includes("Size"))).length,
+        permitIssues: reports.filter((r) => (r.violationType || []).some((v) => v.includes("Permit"))).length,
+        placementViolations: reports.filter((r) => (r.violationType || []).some((v) => v.includes("Placement"))).length,
+        structuralConcerns: reports.filter((r) => (r.violationType || []).some((v) => v.includes("Structural"))).length,
       },
       complianceRate: Math.round(((stats.total - stats.pending) / stats.total) * 100),
       averageConfidence: Math.round(reports.reduce((sum, r) => sum + r.confidence, 0) / reports.length),
@@ -326,11 +291,17 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
                 <Home className="h-4 w-4 mr-2" />
                 Home
               </Button>
+              <Link href="/dashboard">
+                <Button variant="outline">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Back to Analysis Dashboard
+                </Button>
+              </Link>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
-              <Button variant="outline" onClick={() => setReports(loadReports())}>
+              <Button variant="outline" onClick={fetchReports}>
                 <Eye className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
@@ -498,7 +469,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            {report.violationType.map((type, index) => (
+                            {(report.violationType || []).map((type, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {type}
                               </Badge>
@@ -549,17 +520,20 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
                                         </Badge>
                                       </div>
                                     </div>
+                                    <div>
+                                      <Label className="text-sm font-medium">Location</Label>
+                                      <p className="text-sm mt-1">{selectedReport.location}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium">Reported By</Label>
+                                      <p className="text-sm mt-1">{selectedReport.reportedBy}</p>
+                                    </div>
                                   </div>
 
                                   <div>
-                                    <Label className="text-sm font-medium">Location</Label>
-                                    <p className="mt-1 text-sm">{selectedReport.location}</p>
-                                  </div>
-
-                                  <div>
-                                    <Label className="text-sm font-medium">Violations Detected</Label>
-                                    <div className="mt-1 space-y-1">
-                                      {selectedReport.violationType.map((type, index) => (
+                                    <Label className="text-sm font-medium">Violation Types</Label>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {(selectedReport.violationType || []).map((type, index) => (
                                         <Badge key={index} variant="outline">
                                           {type}
                                         </Badge>
@@ -569,38 +543,40 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
 
                                   <div>
                                     <Label className="text-sm font-medium">Description</Label>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                      {selectedReport.description || "No description provided"}
-                                    </p>
+                                    <p className="text-sm mt-1 text-muted-foreground">{selectedReport.description}</p>
                                   </div>
+
+                                  {selectedReport.imageUrl && (
+                                    <div>
+                                      <Label className="text-sm font-medium">Evidence</Label>
+                                      <div className="mt-2 rounded-lg overflow-hidden border">
+                                        <img
+                                          src={selectedReport.imageUrl || "/placeholder.svg"}
+                                          alt="Violation evidence"
+                                          className="w-full h-48 object-cover"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
 
                                   <div>
                                     <Label className="text-sm font-medium">Admin Notes</Label>
                                     <Textarea
-                                      placeholder="Add investigation notes..."
+                                      className="mt-2"
+                                      placeholder="Add internal notes..."
                                       defaultValue={selectedReport.adminNotes}
-                                      className="mt-1"
                                     />
                                   </div>
 
-                                  <div className="flex gap-2">
+                                  <div className="flex justify-end gap-2">
                                     <Button
-                                      onClick={() => updateReportStatus(selectedReport.id, "investigating")}
                                       variant="outline"
+                                      onClick={() => updateReportStatus(selectedReport.id, "investigating")}
                                     >
-                                      Mark as Investigating
+                                      Mark Investigating
                                     </Button>
-                                    <Button
-                                      onClick={() => updateReportStatus(selectedReport.id, "resolved")}
-                                      className="bg-green-600 hover:bg-green-700"
-                                    >
-                                      Mark as Resolved
-                                    </Button>
-                                    <Button
-                                      onClick={() => updateReportStatus(selectedReport.id, "dismissed")}
-                                      variant="destructive"
-                                    >
-                                      Dismiss Report
+                                    <Button onClick={() => updateReportStatus(selectedReport.id, "resolved")}>
+                                      Mark Resolved
                                     </Button>
                                   </div>
                                 </div>

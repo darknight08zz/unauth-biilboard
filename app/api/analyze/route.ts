@@ -36,7 +36,7 @@ export async function POST(req: Request) {
                 analysis = await analyzeImage(buffer);
             }
         } else {
-            // Fallback to server-side analysis (mock)
+            // Fallback to server-side analysis
             analysis = await analyzeImage(buffer);
         }
 

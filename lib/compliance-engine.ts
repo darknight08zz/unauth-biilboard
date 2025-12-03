@@ -414,29 +414,3 @@ export function generateComplianceReport(
 
   return report
 }
-
-export function mockAnalyzeImage(imageFile: File): Promise<any> {
-  return new Promise((resolve) => {
-    // Simulate AI processing delay
-    setTimeout(() => {
-      // Generate realistic mock analysis data
-      const mockAnalysis = {
-        estimatedWidth: Math.floor(Math.random() * 10) + 12, // 12-22 feet
-        estimatedHeight: Math.floor(Math.random() * 6) + 6, // 6-12 feet
-        detectsIntersection: Math.random() > 0.7, // 30% chance
-        detectsTrafficSignals: Math.random() > 0.8, // 20% chance
-        estimatedDistanceFromIntersection: Math.floor(Math.random() * 400) + 100, // 100-500 feet
-        distanceFromTrafficSignals: Math.floor(Math.random() * 200) + 100, // 100-300 feet
-        structuralIssues: Math.random() > 0.9, // 10% chance
-        supportCondition: ["good", "fair", "poor"][Math.floor(Math.random() * 3)],
-        prohibitedContent: Math.random() > 0.95, // 5% chance
-        illuminated: Math.random() > 0.2, // 80% chance
-        flashingLights: Math.random() > 0.9, // 10% chance
-        isDigital: Math.random() > 0.4, // 60% chance
-        brightnessLevel: ["low", "medium", "high", "excessive"][Math.floor(Math.random() * 4)],
-      }
-
-      resolve(mockAnalysis)
-    }, 2000) // 2 second delay to simulate processing
-  })
-}

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext } from "react"
-import { SessionProvider, useSession, signIn, signOut } from "next-auth/react"
+import { SessionProvider, useSession, signIn, signOut, getSession } from "next-auth/react"
 
 interface User {
   id: string

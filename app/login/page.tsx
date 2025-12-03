@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
+import { getSession } from "next-auth/react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -49,7 +50,18 @@ export default function LoginPage() {
         return
       }
 
-      router.push("/")
+      // Fetch the session to get the user's role
+      const session = await getSession()
+      const role = (session?.user as any)?.role
+
+      if (role === "admin" || role === "inspector") {
+        router.push("/admin")
+      } else if (role === "citizen") {
+        router.push("/public-dashboard")
+      } else {
+        router.push("/")
+      }
+
       router.refresh()
 
     } catch (error) {
