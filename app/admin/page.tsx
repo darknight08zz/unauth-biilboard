@@ -13,6 +13,7 @@ import {
   Search,
   LogOut,
   Home,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,6 +30,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ProtectedRoute } from "@/components/protected-route"
@@ -155,6 +167,21 @@ function AdminDashboardContent() {
       report.id === reportId ? { ...report, status: newStatus as any, adminNotes: notes || report.adminNotes } : report,
     )
     setReports(updatedReports)
+  }
+
+  const deleteReport = async (reportId: string) => {
+    try {
+      const res = await fetch(`/api/billboards/${reportId}`, {
+        method: "DELETE",
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setReports(reports.filter((r) => r.id !== reportId))
+      }
+    } catch (error) {
+      console.error("Failed to delete report:", error)
+    }
   }
 
   const stats = {
@@ -496,6 +523,29 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
                                 View
                               </Button>
                             </DialogTrigger>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm" className="ml-2">
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the violation report
+                                    and remove the data from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteReport(report.id)} className="bg-red-600 hover:bg-red-700">
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                             <DialogContent className="max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Report Details - {report.id}</DialogTitle>

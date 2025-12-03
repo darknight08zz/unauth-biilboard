@@ -11,14 +11,17 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
 import { getSession } from "next-auth/react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "login"
   const { login } = useAuth()
 
   const [loginForm, setLoginForm] = useState({
@@ -125,7 +128,7 @@ export default function LoginPage() {
 
         <Card>
           <CardContent className="p-6">
-            <Tabs defaultValue="login" className="space-y-6">
+            <Tabs defaultValue={defaultTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>

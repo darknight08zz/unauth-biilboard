@@ -16,6 +16,8 @@ export async function POST(req: Request) {
         const file = formData.get("image") as File;
         const name = formData.get("name") as string || "Untitled Billboard";
         const location = formData.get("location") as string || "Unknown Location";
+        const lat = parseFloat(formData.get("lat") as string);
+        const lng = parseFloat(formData.get("lng") as string);
         const analysisDataString = formData.get("analysisData") as string;
 
         if (!file) {
@@ -50,6 +52,7 @@ export async function POST(req: Request) {
             userId: new mongoose.Types.ObjectId((token.id || token.sub) as string),
             name,
             location,
+            coordinates: (!isNaN(lat) && !isNaN(lng)) ? { lat, lng } : undefined,
             imageUrl: base64Image,
             analysis: {
                 width: analysis.width,

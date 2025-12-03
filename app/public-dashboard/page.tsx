@@ -11,7 +11,10 @@ import {
   Info,
   Phone,
   Mail,
+  LogOut,
 } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +37,8 @@ interface ViolationTrend {
 }
 
 export default function PublicDashboard() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all")
   const [billboards, setBillboards] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -127,6 +132,40 @@ export default function PublicDashboard() {
     })).reverse()
   }, [billboards])
 
+  // Get recent activity (last 5 items)
+  const recentActivity = useMemo(() => {
+    return [...billboards]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5)
+      .map(b => ({
+        id: b._id,
+        type: b.analysis.compliant ? 'compliant' : 'violation',
+        location: b.location || "Unknown Location",
+        timestamp: b.createdAt,
+        message: b.analysis.compliant
+          ? `Compliance verified at ${b.location || "Unknown Location"}`
+          : `Violation detected at ${b.location || "Unknown Location"}`
+      }))
+  }, [billboards])
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    let interval = seconds / 31536000
+    if (interval > 1) return Math.floor(interval) + " years ago"
+    interval = seconds / 2592000
+    if (interval > 1) return Math.floor(interval) + " months ago"
+    interval = seconds / 86400
+    if (interval > 1) return Math.floor(interval) + " days ago"
+    interval = seconds / 3600
+    if (interval > 1) return Math.floor(interval) + " hours ago"
+    interval = seconds / 60
+    if (interval > 1) return Math.floor(interval) + " minutes ago"
+    return Math.floor(seconds) + " seconds ago"
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -138,9 +177,22 @@ export default function PublicDashboard() {
               <p className="text-muted-foreground mt-2">Public transparency portal for billboard regulations and compliance</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
+              <Link href="/dashboard">
+                <Button variant="outline">Back to Analysis Dashboard</Button>
               </Link>
+              {user ? (
+                <Button variant="outline" onClick={() => {
+                  logout()
+                  router.push("/login")
+                }}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              ) : (
+                <Link href="/login">
+                  <Button variant="outline">Login</Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -203,33 +255,24 @@ export default function PublicDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-600 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Violation resolved in Downtown district</p>
-                        <p className="text-xs text-muted-foreground">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-4 w-4 text-yellow-600 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">New violation report submitted</p>
-                        <p className="text-xs text-muted-foreground">5 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-600 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Permit compliance verified in Midtown</p>
-                        <p className="text-xs text-muted-foreground">1 day ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Users className="h-4 w-4 text-blue-600 mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Citizen report processed and resolved</p>
-                        <p className="text-xs text-muted-foreground">2 days ago</p>
-                      </div>
+                    <div className="space-y-4">
+                      {recentActivity.length > 0 ? (
+                        recentActivity.map((activity) => (
+                          <div key={activity.id} className="flex items-start gap-3">
+                            {activity.type === 'compliant' ? (
+                              <CheckCircle className="h-4 w-4 text-green-600 mt-1" />
+                            ) : (
+                              <AlertTriangle className="h-4 w-4 text-red-600 mt-1" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{activity.message}</p>
+                              <p className="text-xs text-muted-foreground">{getTimeAgo(activity.timestamp)}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No recent activity found.</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -4,6 +4,10 @@ export interface IBillboard extends Document {
     userId: mongoose.Types.ObjectId;
     name: string;
     location: string;
+    coordinates?: {
+        lat: number;
+        lng: number;
+    };
     imageUrl: string;
     analysis: {
         width: number;
@@ -29,6 +33,10 @@ const BillboardSchema: Schema<IBillboard> = new mongoose.Schema({
     location: {
         type: String,
         required: [true, 'Please provide a location'],
+    },
+    coordinates: {
+        lat: Number,
+        lng: Number,
     },
     imageUrl: {
         type: String, // Can be a URL or Base64 string

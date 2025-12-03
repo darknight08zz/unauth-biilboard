@@ -104,8 +104,15 @@ export default function DashboardMap({ billboards, focusedLocation }: DashboardM
               // For now, let's just show them if we can (or skip if no lat/lng)
               // Since we only have 'location' string, we can't plot them accurately without geocoding.
               // For this MVP, we will simulate positions around NYC for demo if string is present.
-              const lat = 40.7128 + (Math.random() - 0.5) * 0.1;
-              const lng = -74.0060 + (Math.random() - 0.5) * 0.1;
+              // Use real coordinates if available, otherwise fallback to random offset around NYC (or 0,0)
+              let lat = billboard.coordinates?.lat;
+              let lng = billboard.coordinates?.lng;
+
+              if (!lat || !lng) {
+                // Fallback for old data without coords
+                lat = 40.7128 + (Math.random() - 0.5) * 0.1;
+                lng = -74.0060 + (Math.random() - 0.5) * 0.1;
+              }
 
               return (
                 <Marker key={billboard._id} position={[lat, lng]} icon={customIcon}>

@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import * as ort from 'onnxruntime-web';
 import { preprocess, postprocess, LABELS, BILLBOARD_LABELS } from '@/utils/yolo';
 
+// Set log level to error to suppress warnings like "Unknown CPU vendor"
+ort.env.logLevel = 'error';
+
 // Set wasm path to CDN or local public folder if you copy the wasm files there
 ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
 
@@ -71,7 +74,9 @@ export default function MLAnalyzer({ imageUrl, onAnalysisComplete }: MLAnalyzerP
         img.src = imageUrl;
 
         img.onload = async () => {
-            const canvas = canvasRef.current!;
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+
             canvas.width = img.width;
             canvas.height = img.height;
             const ctx = canvas.getContext('2d');
