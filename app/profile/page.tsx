@@ -23,6 +23,17 @@ import {
     Clock
 } from "lucide-react"
 import Link from "next/link"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ProfileData {
     user: {
@@ -228,6 +239,67 @@ export default function ProfilePage() {
                                             No activity yet. Submit your first report!
                                         </div>
                                     )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Danger Zone */}
+                        <Card className="border-destructive/50">
+                            <CardHeader>
+                                <CardTitle className="text-destructive flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5" />
+                                    Danger Zone
+                                </CardTitle>
+                                <CardDescription>
+                                    Irreversible actions for your account
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">Delete Account</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Permanently delete your account and all associated data.
+                                        </p>
+                                    </div>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive">Delete Account</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete your account
+                                                    and remove your data from our servers.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const res = await fetch("/api/user/delete", {
+                                                                method: "DELETE",
+                                                            })
+                                                            if (res.ok) {
+                                                                logout()
+                                                                router.push("/")
+                                                            } else {
+                                                                alert("Failed to delete account")
+                                                            }
+                                                        } catch (error) {
+                                                            console.error("Error deleting account:", error)
+                                                            alert("An error occurred")
+                                                        }
+                                                    }}
+                                                >
+                                                    Delete Account
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </CardContent>
                         </Card>

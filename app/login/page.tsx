@@ -105,6 +105,16 @@ function LoginForm() {
           email: signupForm.email,
           password: signupForm.password,
         })
+
+        // Redirect based on role
+        if (signupForm.role === "admin" || signupForm.role === "inspector") {
+          router.push("/admin")
+        } else if (signupForm.role === "citizen") {
+          router.push("/public-dashboard")
+        } else {
+          router.push("/")
+        }
+
         router.refresh()
       } else {
         const data = await res.json()
