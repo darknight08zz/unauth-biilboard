@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { complianceRules } from "@/lib/compliance-engine"
 import Link from "next/link"
+import { MobileNav } from "@/components/MobileNav"
+import { useAuth } from "@/components/auth-provider"
 
 export default function CompliancePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -84,7 +86,7 @@ export default function CompliancePage() {
                 Based on Supreme Court Mandates, ASCI Guidelines, and Municipal Corporation Bylaws (2024-2025)
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="hidden md:flex gap-2">
               <Link href="/">
                 <Button variant="outline">
                   <AlertTriangle className="h-4 w-4 mr-2" />
@@ -95,6 +97,14 @@ export default function CompliancePage() {
                 <Button variant="outline">Admin Dashboard</Button>
               </Link>
             </div>
+            <MobileNav
+              items={[
+                { title: "Home", href: "/" },
+                { title: "Dashboard", href: "/dashboard" },
+                { title: "Admin", href: "/admin" },
+              ]}
+              isLoggedIn={false}
+            />
           </div>
         </div>
       </header>

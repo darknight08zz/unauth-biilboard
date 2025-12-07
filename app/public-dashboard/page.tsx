@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
+import { MobileNav } from "@/components/MobileNav"
 
 interface ComplianceData {
   district: string
@@ -183,34 +184,46 @@ export default function PublicDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analysis Dashboard
-              </Button>
-            </Link>
-            <div className="h-6 w-px bg-border hidden md:block" />
-            {user ? (
-              <>
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={() => {
-                  logout()
-                  router.push("/login")
-                }}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+            <div className="hidden md:flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analysis Dashboard
                 </Button>
-              </>
-            ) : (
-              <Link href="/login">
-                <Button variant="default" size="sm">Login</Button>
               </Link>
-            )}
+              <div className="h-6 w-px bg-border hidden md:block" />
+              {user ? (
+                <>
+                  <Link href="/profile">
+                    <Button variant="ghost" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    logout()
+                    router.push("/login")
+                  }}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <Button variant="default" size="sm">Login</Button>
+                </Link>
+              )}
+            </div>
+            <MobileNav
+              items={[
+                { title: "Home", href: "/" },
+                { title: "Analysis Dashboard", href: "/dashboard" },
+                ...(user ? [{ title: "Profile", href: "/profile" }] : []),
+                ...(!user ? [{ title: "Login", href: "/login" }] : [])
+              ]}
+              isLoggedIn={!!user}
+              onLogout={logout}
+            />
           </div>
         </div>
       </header>

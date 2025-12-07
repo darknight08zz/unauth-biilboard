@@ -23,6 +23,7 @@ import {
     Clock
 } from "lucide-react"
 import Link from "next/link"
+import { MobileNav } from "@/components/MobileNav"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -112,16 +113,27 @@ export default function ProfilePage() {
                         </Link>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard">
-                            <Button variant="ghost" size="sm">Dashboard</Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" onClick={() => {
-                            logout()
-                            router.push("/login")
-                        }}>
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Logout
-                        </Button>
+                        <div className="hidden md:flex items-center gap-4">
+                            <Link href="/dashboard">
+                                <Button variant="ghost" size="sm">Dashboard</Button>
+                            </Link>
+                            <Button variant="ghost" size="sm" onClick={() => {
+                                logout()
+                                router.push("/login")
+                            }}>
+                                <LogOut className="h-4 w-4 mr-2" />
+                                Logout
+                            </Button>
+                        </div>
+                        <MobileNav
+                            items={[
+                                { title: "Home", href: "/" },
+                                { title: "Dashboard", href: "/dashboard" },
+                                { title: "Public Data", href: "/public-dashboard" },
+                            ]}
+                            isLoggedIn={!!user}
+                            onLogout={logout}
+                        />
                     </div>
                 </div>
             </header>

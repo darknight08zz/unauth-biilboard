@@ -52,6 +52,7 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { MobileNav } from "@/components/MobileNav"
 
 interface ViolationReport {
   id: string
@@ -359,36 +360,48 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analysis
+            <div className="hidden md:flex items-center gap-2">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analysis
+                </Button>
+              </Link>
+              <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+              <Button variant="outline" size="sm" onClick={fetchReports} title="Refresh Data">
+                <Eye className="h-4 w-4" />
               </Button>
-            </Link>
-            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
-            <Button variant="outline" size="sm" onClick={fetchReports} title="Refresh Data">
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={exportReports} title="Export CSV">
-              <Download className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={exportToPDF} title="Export PDF">
-              <FileDown className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={generateSummary} title="Generate Summary">
-              <FileText className="h-4 w-4" />
-            </Button>
-            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
-            <Link href="/profile">
-              <Button variant="ghost" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Profile
+              <Button variant="outline" size="sm" onClick={exportReports} title="Export CSV">
+                <Download className="h-4 w-4" />
               </Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+              <Button variant="outline" size="sm" onClick={exportToPDF} title="Export PDF">
+                <FileDown className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={generateSummary} title="Generate Summary">
+                <FileText className="h-4 w-4" />
+              </Button>
+              <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+              <Link href="/profile">
+                <Button variant="ghost" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+            <MobileNav
+              items={[
+                { title: "Home", href: "/" },
+                { title: "Dashboard", href: "/dashboard" },
+                { title: "Profile", href: "/profile" },
+                { title: "Public Data", href: "/public-dashboard" },
+              ]}
+              isLoggedIn={true}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       </header>

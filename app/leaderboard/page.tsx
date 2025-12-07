@@ -7,6 +7,8 @@ import NextLink from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/components/auth-provider"
+import { MobileNav } from "@/components/MobileNav"
 
 interface LeaderboardUser {
     _id: string
@@ -16,6 +18,7 @@ interface LeaderboardUser {
 }
 
 export default function LeaderboardPage() {
+    const { user, logout } = useAuth()
     const [users, setUsers] = useState<LeaderboardUser[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
@@ -51,71 +54,91 @@ export default function LeaderboardPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-8">
-            <div className="flex justify-between items-center">
-                <NextLink href="/dashboard">
-                    <Button variant="outline">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Return to Dashboard
-                    </Button>
-                </NextLink>
-            </div>
+        <div className="min-h-screen bg-background">
+            <header className="border-b bg-card">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-lg">
+                        <Trophy className="h-5 w-5 text-primary" />
+                        Leaderboard
+                    </div>
+                    <div className="hidden md:block">
+                        <NextLink href="/dashboard">
+                            <Button variant="ghost">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Return to Dashboard
+                            </Button>
+                        </NextLink>
+                    </div>
+                    <MobileNav
+                        items={[
+                            { title: "Home", href: "/" },
+                            { title: "Dashboard", href: "/dashboard" },
+                            ...(user ? [{ title: "Profile", href: "/profile" }] : []),
+                        ]}
+                        isLoggedIn={!!user}
+                        onLogout={logout}
+                    />
+                </div>
+            </header>
 
-            <div className="text-center space-y-4">
-                <h1 className="text-4xl font-bold tracking-tight text-primary">Community Leaderboard</h1>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Top contributors helping to keep our city compliant. Earn points by submitting verified reports!
-                </p>
-            </div>
+            <div className="container mx-auto px-4 py-8 space-y-8">
 
-            <Card className="max-w-3xl mx-auto">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-yellow-500" />
-                        Top Inspectors
-                    </CardTitle>
-                    <CardDescription>Ranked by total contribution points</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="text-center py-8 text-muted-foreground">Loading leaderboard...</div>
-                    ) : (
-                        <div className="space-y-4">
-                            {users.map((user, index) => (
-                                <div
-                                    key={user._id}
-                                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center justify-center w-8">{getRankIcon(index)}</div>
-                                        <Avatar className="h-10 w-10 border-2 border-background">
-                                            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} />
-                                            <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{user.name}</p>
-                                            <div className="flex gap-2 mt-1">
-                                                {user.badges.map((badge) => (
-                                                    <Badge key={badge} variant="secondary" className="text-xs px-1 py-0 h-5">
-                                                        {badge}
-                                                    </Badge>
-                                                ))}
+                <div className="text-center space-y-4">
+                    <h1 className="text-4xl font-bold tracking-tight text-primary">Community Leaderboard</h1>
+                    <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Top contributors helping to keep our city compliant. Earn points by submitting verified reports!
+                    </p>
+                </div>
+
+                <Card className="max-w-3xl mx-auto">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Star className="h-5 w-5 text-yellow-500" />
+                            Top Inspectors
+                        </CardTitle>
+                        <CardDescription>Ranked by total contribution points</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? (
+                            <div className="text-center py-8 text-muted-foreground">Loading leaderboard...</div>
+                        ) : (
+                            <div className="space-y-4">
+                                {users.map((user, index) => (
+                                    <div
+                                        key={user._id}
+                                        className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center justify-center w-8">{getRankIcon(index)}</div>
+                                            <Avatar className="h-10 w-10 border-2 border-background">
+                                                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} />
+                                                <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{user.name}</p>
+                                                <div className="flex gap-2 mt-1">
+                                                    {user.badges.map((badge) => (
+                                                        <Badge key={badge} variant="secondary" className="text-xs px-1 py-0 h-5">
+                                                            {badge}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
+                                        <div className="text-right">
+                                            <span className="text-xl font-bold text-primary">{user.points}</span>
+                                            <span className="text-xs text-muted-foreground block">points</span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-xl font-bold text-primary">{user.points}</span>
-                                        <span className="text-xs text-muted-foreground block">points</span>
-                                    </div>
-                                </div>
-                            ))}
-                            {users.length === 0 && (
-                                <div className="text-center py-8 text-muted-foreground">No contributors yet. Be the first!</div>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                ))}
+                                {users.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground">No contributors yet. Be the first!</div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

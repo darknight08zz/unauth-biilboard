@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, CheckCircle, Shield, BarChart3, MapPin, Upload, LogOut, LayoutDashboard } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { useAuth } from "@/components/auth-provider"
+import { MobileNav } from "@/components/MobileNav"
 
 export default function LandingPage() {
   const { user, logout } = useAuth()
@@ -14,36 +15,48 @@ export default function LandingPage() {
       <header className="px-4 lg:px-6 h-16 flex items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <Link className="flex items-center justify-center" href="/">
           <Shield className="h-6 w-6 text-primary mr-2" />
-          <span className="font-bold text-xl">BillboardGuard</span>
+          <span className="font-bold text-xl hidden sm:inline-block">BillboardGuard</span>
+          <span className="font-bold text-xl sm:hidden">BillboardGuard</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="#features">
-            Features
-          </Link>
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="#how-it-works">
-            How It Works
-          </Link>
-          {user ? (
-            <>
-              <Link className="text-sm font-medium hover:text-primary transition-colors flex items-center" href="/dashboard">
-                <LayoutDashboard className="h-4 w-4 mr-1" />
-                Dashboard
-              </Link>
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="text-sm font-medium hover:text-primary transition-colors flex items-center"
-              >
-                <LogOut className="h-4 w-4 mr-1" />
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <Link className="text-sm font-medium hover:text-primary transition-colors" href="/login">
-              Sign In
+        <div className="ml-auto flex items-center">
+          <nav className="hidden md:flex gap-4 sm:gap-6 items-center">
+            <Link className="text-sm font-medium hover:text-primary transition-colors" href="#features">
+              Features
             </Link>
-          )}
-        </nav>
+            <Link className="text-sm font-medium hover:text-primary transition-colors" href="#how-it-works">
+              How It Works
+            </Link>
+            {user ? (
+              <>
+                <Link className="text-sm font-medium hover:text-primary transition-colors flex items-center" href="/dashboard">
+                  <LayoutDashboard className="h-4 w-4 mr-1" />
+                  Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="text-sm font-medium hover:text-primary transition-colors flex items-center"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link className="text-sm font-medium hover:text-primary transition-colors" href="/login">
+                Sign In
+              </Link>
+            )}
+          </nav>
+          <MobileNav
+            items={[
+              { title: "Features", href: "#features" },
+              { title: "How It Works", href: "#how-it-works" },
+              ...(user ? [{ title: "Dashboard", href: "/dashboard" }] : [])
+            ]}
+            isLoggedIn={!!user}
+            onLogout={logout}
+          />
+        </div>
       </header>
 
       <main className="flex-1">

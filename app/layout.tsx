@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} antialiased`}>
-      <body className="font-sans">
+      <body className="font-sans" suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
         <Toaster />
       </body>
