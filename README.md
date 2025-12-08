@@ -96,10 +96,6 @@ A comprehensive web application for detecting and reporting unauthorized billboa
 4. **Generate Reports**: Export data for regulatory compliance and reporting
 5. **Monitor Trends**: Analyze violation patterns and compliance metrics
 
-### Demo Accounts
-- **Admin**: admin@city.gov / admin123
-- **Inspector**: inspector@city.gov / inspector123  
-- **Citizen**: citizen@email.com / citizen123
 
 ## 🗂️ Project Structure
 
@@ -148,7 +144,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🚀 Deployment
 
-Your project is automatically deployed on Vercel:
+The project is automatically deployed on Vercel:
 
 **Live Demo**: [https://vercel.com/prajapatiujjwal0802-1050s-projects/v0-billboarddetectionandreportingm](https://vercel.com/prajapatiujjwal0802-1050s-projects/v0-billboarddetectionandreportingm)
 
@@ -160,10 +156,8 @@ npm start
 
 ## 🔄 Development Workflow
 
-This repository stays in sync with [v0.app](https://v0.app):
-
 1. **Build**: Continue development on (https://v0.app/chat/projects/87YihF6FGZj)
-2. **Deploy**: Changes are automatically pushed from v0.app
+2. **Deploy**: Changes are automatically deployer on vercel
 3. **Sync**: Repository updates trigger Vercel deployments
 
 ## 📞 Support
