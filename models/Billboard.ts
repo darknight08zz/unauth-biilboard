@@ -15,6 +15,12 @@ export interface IBillboard extends Document {
         aspectRatio: number;
         compliant: boolean;
         details: string;
+        complianceScore?: number;
+        riskLevel?: string;
+        violations?: Array<{
+            rule: any; // Using any for flexibility or define a sub-interface
+            result: any;
+        }>;
     };
     userFeedback?: {
         isCorrect: boolean;
@@ -53,6 +59,12 @@ const BillboardSchema: Schema<IBillboard> = new mongoose.Schema({
         aspectRatio: Number,
         compliant: Boolean,
         details: String,
+        complianceScore: Number,
+        riskLevel: String,
+        violations: [{
+            rule: mongoose.Schema.Types.Mixed,
+            result: mongoose.Schema.Types.Mixed
+        }]
     },
     userFeedback: {
         isCorrect: Boolean,

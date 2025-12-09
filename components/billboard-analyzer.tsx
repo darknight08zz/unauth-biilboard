@@ -97,18 +97,51 @@ export function BillboardAnalyzer() {
       // If the server analysis is basic, we might need to enhance it client-side 
       // using the same logic as before but with real data from the server.
 
-      const serverAnalysis = data.analysis
+      // Map server-side analysis to state
+      // The saved billboard data is in `data.data`
+      // The comprehensive analysis is in `data.data.analysis`
 
-      // We can use the server analysis to feed into enhanceAnalysisWithCompliance
-      const result = enhanceAnalysisWithCompliance({
-        estimatedWidth: serverAnalysis.width / 100, // Mock scale for demo if needed, or use real
-        estimatedHeight: serverAnalysis.height / 100,
-        // ... map other fields
-        ...serverAnalysis
-      }, { location })
+      const billboardData = data.data;
 
-      setAnalysisResult(result)
-      console.log("[v0] C3 analysis complete:", result)
+      setAnalysisResult({
+        billboardData: {
+          dimensions: {
+            width: billboardData.analysis.width,
+            height: billboardData.analysis.height,
+            area: billboardData.analysis.width * billboardData.analysis.height // Or use stored area if available
+          },
+          location: {
+            // Determine detecting based on context or store it. 
+            // For MVP, we reconstruct it or assume partial data
+            distanceFromIntersection: undefined, // Add if server provides
+            distanceFromTrafficSignals: undefined,
+            zoneType: "commercial",
+            nearIntersection: false,
+            hasTrafficSignalsVisible: false
+          },
+          structural: {
+            hasStructuralIssues: false,
+            supportCondition: "good"
+          },
+          content: {
+            hasProhibitedContent: false,
+            isIlluminated: true,
+            flashingLights: false,
+            isDigital: true,
+            brightnessLevel: "medium"
+          }
+        },
+        complianceResults: {
+          overallCompliance: billboardData.analysis.compliant,
+          violations: billboardData.analysis.violations || [],
+          complianceScore: billboardData.analysis.complianceScore || 0,
+          totalFines: 0, // Server should calculate this too
+          riskLevel: billboardData.analysis.riskLevel || "medium",
+          immediateActionRequired: false,
+          priorityViolations: []
+        }
+      });
+      console.log("[v0] Server-side analysis complete:", billboardData);
     } catch (error) {
       console.error("[v0] C3 analysis failed:", error)
       alert("Analysis failed. Please try again.")

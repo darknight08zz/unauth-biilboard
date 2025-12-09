@@ -4,44 +4,41 @@ import path from 'path';
 
 test.describe('Billboard Reporting Flow', () => {
     test('should allow a user to upload an image and see analysis', async ({ page }) => {
-        // 1. Navigate to home page
+        // 1. Login
+        await page.goto('/login');
+        // Assuming standard shadcn/params auth form
+        await page.fill('input[type="email"]', 'citizen@email.com');
+        await page.fill('input[type="password"]', 'citizen123');
+        // Look for a submit button. It might comprise of "Sign In" or similar
+        await page.click('button[type="submit"]');
+
+        // Wait for redirect to home or dashboard. 
+        // If login is successful, we should be on home '/' or dashboard.
+        await page.waitForURL('**/', { timeout: 10000 });
+
+        // 2. Navigate to home (just to be sure, though login should take us there)
         await page.goto('/');
 
-        // 2. Find the analyzer section (assuming it's on the home page or verification page)
-        // Based on the code, BillboardAnalyzer is likely on the home page or a specific route.
-        // Let's assume hitting the main CTA leads there or it's embedded.
-        // If it's pure UI component, we might need to find where it is used.
-        // Looking at previous context, it seems to be in `components/billboard-analyzer.tsx`.
+        // 3. Find the analyzer section
+        await expect(page.getByText('C1: Image Upload')).toBeVisible({ timeout: 10000 });
 
-        // Let's check if there is a "Report Violation" or similar button that leads to analysis
-        // or if the analyzer is directly visible.
-        // If we're unsure, we can check `app/page.tsx`.
-
-        // For now, I will write a test that assumes the analyzer is on the home page or accessible.
-        // If it fails, I'll adjust.
-
-        // Check for "C1: Image Upload" text which is in the card title
-        await expect(page.getByText('C1: Image Upload')).toBeVisible();
-
-        // 3. Upload a file
-        // We'll use the placeholder.jpg from public
+        // 4. Upload a file
         const fileChooserPromise = page.waitForEvent('filechooser');
-        // Click the input (it might be hidden, so we might need to target the label or force click)
-        // The input has id="image-upload"
+        // Use a label or make input visible if needed.
+        // Given previous code, let's try setting input files directly on the hidden input.
+        // If that fails, we might need to click a label.
         await page.setInputFiles('input#image-upload', path.join(__dirname, '../public/placeholder.jpg'));
 
-        // 4. Input Location (optional but good for testing)
+        // 5. Input Location
         await page.fill('input#location', 'Test Location, Bengaluru');
 
-        // 5. Click "Start C3 Analysis"
+        // 6. Click "Start C3 Analysis"
         await page.click('button:has-text("Start C3 Analysis")');
 
-        // 6. Wait for results
-        // The result card has title "C3: Analysis & Verification Results"
-        // It might take a moment (mocked delay or API call)
-        await expect(page.getByText('C3: Analysis & Verification Results')).toBeVisible({ timeout: 10000 });
+        // 7. Wait for results
+        await expect(page.getByText('C3: Analysis & Verification Results')).toBeVisible({ timeout: 15000 });
 
-        // 7. Verify some result details
+        // 8. Verify some result details
         await expect(page.getByText('Compliance Score')).toBeVisible();
         await expect(page.getByText('Risk Level:')).toBeVisible();
     });

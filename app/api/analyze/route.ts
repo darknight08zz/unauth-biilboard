@@ -26,21 +26,23 @@ export async function POST(req: Request) {
 
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        let analysis;
+        // Server-side analysis ONLY - ignore client data for security
+        const imageAnalysis = await analyzeImage(buffer);
 
-        if (analysisDataString) {
-            try {
-                // Use client-side analysis if provided
-                analysis = JSON.parse(analysisDataString);
-                console.log("Using client-side analysis:", analysis);
-            } catch (e) {
-                console.warn("Failed to parse client analysis data, falling back to server analysis", e);
-                analysis = await analyzeImage(buffer);
-            }
-        } else {
-            // Fallback to server-side analysis
-            analysis = await analyzeImage(buffer);
-        }
+        // Calculate compliance using the robust engine
+        const { enhanceAnalysisWithCompliance } = await import("@/lib/compliance-engine");
+
+        // Map sharp analysis to compliance engine input
+        const enhancedResult = enhanceAnalysisWithCompliance({
+            estimatedWidth: imageAnalysis.width / 100, // Approximate scale if no reference object
+            estimatedHeight: imageAnalysis.height / 100,
+            width: imageAnalysis.width,
+            height: imageAnalysis.height,
+            aspectRatio: imageAnalysis.aspectRatio,
+            // Pass other detected attributes if available from analyzeImage
+        }, {
+            location: location // Use provided location string for context
+        });
 
         // Save to DB
         await dbConnect();
@@ -55,18 +57,21 @@ export async function POST(req: Request) {
             coordinates: (!isNaN(lat) && !isNaN(lng)) ? { lat, lng } : undefined,
             imageUrl: base64Image,
             analysis: {
-                width: analysis.width,
-                height: analysis.height,
-                aspectRatio: analysis.aspectRatio,
-                compliant: analysis.compliant,
-                details: analysis.details,
+                width: imageAnalysis.width,
+                height: imageAnalysis.height,
+                aspectRatio: imageAnalysis.aspectRatio,
+                compliant: enhancedResult.complianceResults.overallCompliance,
+                details: enhancedResult.complianceResults.violations.map(v => v.result.violationMessage).join(", ") || "Compliant",
+                complianceScore: enhancedResult.complianceResults.complianceScore,
+                riskLevel: enhancedResult.complianceResults.riskLevel,
+                violations: enhancedResult.complianceResults.violations
             },
         });
 
         return NextResponse.json({
             message: "Analysis complete",
             data: billboard,
-            analysis
+            analysis: enhancedResult
         }, { status: 201 });
 
     } catch (error) {
