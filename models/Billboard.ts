@@ -27,6 +27,9 @@ export interface IBillboard extends Document {
         correction?: string;
         submittedAt: Date;
     };
+    adminNotes?: string;
+    requestId?: string;
+    status: 'pending' | 'investigating' | 'resolved' | 'dismissed';
     createdAt: Date;
     updatedAt: Date;
 }
@@ -36,6 +39,20 @@ const BillboardSchema: Schema<IBillboard> = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+    },
+    requestId: {
+        type: String,
+        unique: true,
+        sparse: true, // Allows null/undefined values to exist without violating uniqueness
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'investigating', 'resolved', 'dismissed'],
+        default: 'pending',
+    },
+    adminNotes: {
+        type: String,
+        default: "",
     },
     name: {
         type: String,

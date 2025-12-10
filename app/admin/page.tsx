@@ -91,14 +91,15 @@ function AdminDashboardContent() {
   const fetchReports = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/billboards')
+      const res = await fetch('/api/billboards', { cache: 'no-store', headers: { 'Pragma': 'no-cache' } })
       const data = await res.json()
+      console.log("Fetched reports data:", data); // Debug log (can be removed later)
 
       if (data.success) {
         const mappedReports: ViolationReport[] = data.data.map((b: any) => ({
           id: b._id,
-          status: b.analysis.compliant ? "resolved" : "pending",
-          priority: !b.analysis.compliant ? "high" : "low",
+          status: b.status || (b.analysis.compliant ? "resolved" : "pending"), // Use DB status, fallback for old records
+          priority: b.analysis.riskLevel === "critical" || b.analysis.riskLevel === "high" ? "high" : (!b.analysis.compliant ? "medium" : "low"),
           violationType: b.analysis.details ? [b.analysis.details.split(' ')[0]] : ["Unknown"],
           location: b.location || "Unknown Location",
           reportedBy: "System",
@@ -106,7 +107,7 @@ function AdminDashboardContent() {
           confidence: 95,
           imageUrl: b.imageUrl,
           description: b.analysis.details || "No description provided",
-          adminNotes: ""
+          adminNotes: b.adminNotes || ""
         }))
         setReports(mappedReports)
       }
@@ -204,11 +205,24 @@ function AdminDashboardContent() {
     }
   }
 
-  const updateReportStatus = (reportId: string, newStatus: string, notes?: string) => {
-    const updatedReports = reports.map((report) =>
-      report.id === reportId ? { ...report, status: newStatus as any, adminNotes: notes || report.adminNotes } : report,
-    )
-    setReports(updatedReports)
+  const updateReportStatus = async (reportId: string, newStatus: string, notes?: string) => {
+    try {
+      const res = await fetch(`/api/billboards/${reportId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus, adminNotes: notes }),
+      })
+
+      if (res.ok) {
+        const updatedReports = reports.map((report) =>
+          report.id === reportId ? { ...report, status: newStatus as any, adminNotes: notes !== undefined ? notes : report.adminNotes } : report,
+        )
+        setReports(updatedReports)
+        // toast({ title: "Status Updated", description: `Report marked as ${newStatus}` })
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error)
+    }
   }
 
   const deleteReport = async (reportId: string) => {

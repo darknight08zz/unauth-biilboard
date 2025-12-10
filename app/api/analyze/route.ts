@@ -20,11 +20,34 @@ export async function POST(req: Request) {
         const lng = parseFloat(formData.get("lng") as string);
         const analysisDataString = formData.get("analysisData") as string;
 
+        const requestId = formData.get("requestId") as string | null;
+
         if (!file) {
             return NextResponse.json({ message: "No image provided" }, { status: 400 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
+
+        // Check for duplicate request
+        await dbConnect();
+        if (requestId) {
+            const existingBillboard = await Billboard.findOne({ requestId });
+            if (existingBillboard) {
+                // If the user submits the same request ID, return the existing process
+                return NextResponse.json({
+                    message: "Analysis already completed for this request",
+                    data: existingBillboard,
+                    analysis: {
+                        complianceResults: {
+                            overallCompliance: existingBillboard.analysis.compliant,
+                            violations: existingBillboard.analysis.violations,
+                            complianceScore: existingBillboard.analysis.complianceScore,
+                            riskLevel: existingBillboard.analysis.riskLevel
+                        }
+                    } // Reconstruct minimal analysis object if needed by frontend, or fetch fully
+                }, { status: 200 });
+            }
+        }
 
         // Server-side analysis ONLY - ignore client data for security
         const imageAnalysis = await analyzeImage(buffer);
@@ -44,14 +67,15 @@ export async function POST(req: Request) {
             location: location // Use provided location string for context
         });
 
-        // Save to DB
-        await dbConnect();
-
         // Convert buffer to base64 for storage (MVP only)
         const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
 
+        const isCompliant = enhancedResult.complianceResults.overallCompliance;
+
         const billboard = await Billboard.create({
             userId: new mongoose.Types.ObjectId((token.id || token.sub) as string),
+            requestId: requestId,
+            status: isCompliant ? 'resolved' : 'pending', // Auto-resolve if compliant
             name,
             location,
             coordinates: (!isNaN(lat) && !isNaN(lng)) ? { lat, lng } : undefined,
@@ -60,7 +84,7 @@ export async function POST(req: Request) {
                 width: imageAnalysis.width,
                 height: imageAnalysis.height,
                 aspectRatio: imageAnalysis.aspectRatio,
-                compliant: enhancedResult.complianceResults.overallCompliance,
+                compliant: isCompliant,
                 details: enhancedResult.complianceResults.violations.map(v => v.result.violationMessage).join(", ") || "Compliant",
                 complianceScore: enhancedResult.complianceResults.complianceScore,
                 riskLevel: enhancedResult.complianceResults.riskLevel,
