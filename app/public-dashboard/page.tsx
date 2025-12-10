@@ -349,7 +349,7 @@ export default function PublicDashboard() {
                   </div>
                 </div>
                 <div className="mt-6 text-center">
-                  <Link href="/">
+                  <Link href="/dashboard">
                     <Button size="lg">
                       <AlertTriangle className="h-4 w-4 mr-2" />
                       Report a Violation Now
