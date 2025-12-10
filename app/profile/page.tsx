@@ -45,7 +45,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-    const { user, logout } = useAuth()
+    const { user, logout, isLoading: authLoading } = useAuth()
     const router = useRouter()
     const [profile, setProfile] = useState<ProfileData | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -71,13 +71,47 @@ export default function ProfilePage() {
     }
 
     useEffect(() => {
-        fetchProfile()
-    }, [])
+        if (user) {
+            fetchProfile()
+        } else if (!authLoading) {
+            setIsLoading(false)
+        }
+    }, [user, authLoading])
 
-    if (isLoading) {
+    if (isLoading || authLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+                <Card className="w-full max-w-md hover:shadow-glow transition-all duration-300">
+                    <CardHeader className="text-center">
+                        <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
+                            <Shield className="h-8 w-8 text-primary" />
+                        </div>
+                        <CardTitle className="text-2xl">Sign In Required</CardTitle>
+                        <CardDescription>
+                            Please sign in to view your profile, track your reports, and see your stats.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Link href="/login" className="w-full block">
+                            <Button className="w-full" size="lg">
+                                Sign In
+                            </Button>
+                        </Link>
+                        <Link href="/" className="w-full block">
+                            <Button variant="ghost" className="w-full">
+                                Return Home
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
             </div>
         )
     }

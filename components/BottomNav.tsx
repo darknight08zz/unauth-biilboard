@@ -14,7 +14,7 @@ export function BottomNav() {
     const items = [
         {
             title: "Home",
-            href: "/dashboard",
+            href: "/",
             icon: Home,
         },
         {
