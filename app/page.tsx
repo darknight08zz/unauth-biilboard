@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, CheckCircle, Shield, BarChart3, MapPin, Upload, LogOut, LayoutDashboard, Brain, Zap, Globe } from "lucide-react"
+import { ArrowRight, CheckCircle, Shield, BarChart3, MapPin, Upload, LogOut, LayoutDashboard, Brain, Zap, Globe, User } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { useAuth } from "@/components/auth-provider"
 import { MobileNav } from "@/components/MobileNav"
@@ -27,6 +27,9 @@ export default function LandingPage() {
             <Link className="text-sm font-medium hover:text-primary transition-colors" href="#features">
               Features
             </Link>
+            <Link className="text-sm font-medium hover:text-primary transition-colors" href="/public-dashboard">
+              Public Data
+            </Link>
             <Link className="text-sm font-medium hover:text-primary transition-colors" href="#how-it-works">
               How It Works
             </Link>
@@ -40,6 +43,12 @@ export default function LandingPage() {
                   <Button variant="ghost" size="sm" className="hidden sm:flex">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Dashboard
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
                   </Button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => logout()} className="hidden sm:flex">
@@ -56,7 +65,11 @@ export default function LandingPage() {
               items={[
                 { title: "Features", href: "#features" },
                 { title: "How It Works", href: "#how-it-works" },
-                ...(user ? [{ title: "Dashboard", href: "/dashboard" }] : [])
+                { title: "Public Data", href: "/public-dashboard" },
+                ...(user ? [
+                  { title: "Dashboard", href: "/dashboard" },
+                  { title: "Profile", href: "/profile" }
+                ] : [])
               ]}
               isLoggedIn={!!user}
               onLogout={logout}
