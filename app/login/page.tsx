@@ -130,13 +130,14 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 rounded-full blur-3xl -z-10 opacity-50 animate-pulse-glow" />
+      <div className="w-full max-w-md animate-scale-in opacity-0" style={{ animationDelay: "0.1s" }}>
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary">Billboard Detection System</h1>
+          <h1 className="text-3xl font-bold text-primary tracking-tight">Billboard Detection System</h1>
           <p className="text-muted-foreground mt-2">Sign in to your account or create a new one</p>
         </div>
 
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-md border-primary/10 shadow-lg">
           <CardContent className="p-6">
             <Tabs defaultValue={defaultTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
@@ -181,7 +182,7 @@ function LoginForm() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-glow transition-all duration-300" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -290,7 +291,7 @@ function LoginForm() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-glow transition-all duration-300" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />

@@ -424,10 +424,10 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
         </div>
       </header >
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 animate-fade-in-up">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <Card>
+          <Card className="hover:scale-105 transition-transform duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -439,7 +439,9 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             </CardContent>
           </Card>
 
-          <Card>
+
+
+          <Card className="hover:scale-105 transition-transform duration-300" style={{ transitionDelay: "50ms" }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -451,7 +453,9 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             </CardContent>
           </Card>
 
-          <Card>
+
+
+          <Card className="hover:scale-105 transition-transform duration-300" style={{ transitionDelay: "100ms" }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -463,7 +467,9 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             </CardContent>
           </Card>
 
-          <Card>
+
+
+          <Card className="hover:scale-105 transition-transform duration-300" style={{ transitionDelay: "150ms" }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -475,7 +481,9 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             </CardContent>
           </Card>
 
-          <Card>
+
+
+          <Card className="hover:scale-105 transition-transform duration-300" style={{ transitionDelay: "200ms" }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -486,7 +494,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div >
 
         <Tabs defaultValue="reports" className="space-y-6">
           <TabsList>
@@ -804,7 +812,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
+      </main >
     </div >
   )
 }

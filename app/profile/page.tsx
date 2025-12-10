@@ -141,9 +141,9 @@ export default function ProfilePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Left Column: Stats & Settings */}
-                    <div className="md:col-span-1 space-y-6">
+                    <div className="md:col-span-1 space-y-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
                         <div className="grid grid-cols-1 gap-4">
-                            <Card>
+                            <Card className="hover:shadow-md transition-all duration-300 hover:border-primary/30">
                                 <CardContent className="pt-6">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card>
+                            <Card className="hover:shadow-md transition-all duration-300 hover:border-primary/30">
                                 <CardContent className="pt-6">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -168,7 +168,7 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Danger Zone */}
-                        <Card className="border-destructive/50">
+                        <Card className="border-destructive/50 bg-destructive/5">
                             <CardHeader>
                                 <CardTitle className="text-base text-destructive flex items-center gap-2">
                                     <AlertTriangle className="h-4 w-4" />

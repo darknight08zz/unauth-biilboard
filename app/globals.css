@@ -48,26 +48,35 @@
     /* Added font family variables for Space Grotesk and DM Sans */
     --font-sans: var(--font-dm-sans);
     --font-heading: var(--font-space-grotesk);
+
+    /* Custom Effects */
+    --primary-glow: 188 95% 35% / 0.5;
+    --shadow-glow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    --shadow-card: 0 10px 40px -10px hsl(0 0% 0% / 0.05);
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(220 9% 10%) 0%, hsl(220 9% 4%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary)) 100%);
   }
   .dark {
     --background: 220 9% 4%;
     --foreground: 0 0% 95%;
-    --card: 220 9% 4%;
+    --card: 220 9% 6%; /* Slightly lighter than bg */
     --card-foreground: 0 0% 95%;
-    --popover: 220 9% 4%;
+    --popover: 220 9% 6%;
     --popover-foreground: 0 0% 95%;
     --primary: 188 95% 42%;
     --primary-foreground: 220 9% 4%;
     --secondary: 188 95% 35%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 220 9% 15%;
+    --muted: 220 9% 12%;
     --muted-foreground: 0 0% 64%;
     --accent: 188 95% 42%;
     --accent-foreground: 220 9% 4%;
     --destructive: 22 82% 39%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 9% 15%;
-    --input: 220 9% 15%;
+    --border: 220 9% 12%;
+    --input: 220 9% 12%;
     --ring: 188 95% 42%;
     --chart-1: 188 95% 50%;
     --chart-2: 188 95% 42%;
@@ -82,6 +91,11 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 9% 15%;
     --sidebar-ring: 188 95% 42%;
+
+    /* Custom Effects Dark */
+    --primary-glow: 188 95% 42% / 0.4;
+    --shadow-glow: 0 0 30px -5px hsl(var(--primary) / 0.4);
+    --shadow-card: 0 0 0 1px hsl(220 9% 12%), 0 10px 40px -10px hsl(0 0% 0% / 0.5);
   }
 }
 
@@ -90,7 +104,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
   }
   h1,
   h2,
@@ -99,5 +113,6 @@
   h5,
   h6 {
     font-family: var(--font-heading);
+    @apply tracking-tight;
   }
 }

@@ -82,7 +82,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 lg:py-48 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background -z-10" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/10 rounded-full blur-3xl -z-10 opacity-50" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/10 rounded-full blur-3xl -z-10 opacity-50 animate-pulse-glow" />
 
           <div className="container px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center space-y-8 text-center">
@@ -90,24 +90,27 @@ export default function LandingPage() {
                 BillBoardGuard
               </Badge>
 
-              <div className="space-y-4 max-w-4xl">
+              <div className="space-y-4 max-w-4xl animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s" }}>
                 <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                  Architecting Urban Integrity with <span className="text-primary">Intelligent Oversight</span>
+                  Architecting Urban Integrity with <span className="text-primary relative inline-block">
+                    Intelligent Oversight
+                    <span className="absolute inset-x-0 bottom-1 h-3 bg-primary/20 -z-10 skew-x-12" />
+                  </span>
                 </h1>
-                <p className="mx-auto max-w-[800px] text-muted-foreground md:text-xl lg:text-2xl leading-relaxed">
+                <p className="mx-auto max-w-[800px] text-muted-foreground md:text-xl lg:text-2xl leading-relaxed animate-fade-in-up opacity-0" style={{ animationDelay: "0.3s" }}>
                   Bridging the gap between civic ordinances and urban reality. We leverage advanced computer vision to democratize compliance, ensuring public spaces uphold the highest standards of safety and aesthetics.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center animate-fade-in-up opacity-0" style={{ animationDelay: "0.5s" }}>
                 <Link href="/dashboard">
-                  <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                  <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/40">
                     Start Reporting
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/public-dashboard">
-                  <Button variant="outline" size="lg" className="h-14 px-8 text-lg w-full sm:w-auto backdrop-blur-sm bg-background/50">
+                  <Button variant="outline" size="lg" className="h-14 px-8 text-lg w-full sm:w-auto backdrop-blur-sm bg-background/50 hover:bg-background/80 transition-all">
                     View Public Map
                   </Button>
                 </Link>
@@ -144,9 +147,9 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg">
+              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow hover:-translate-y-1 animate-fade-in-up opacity-0" style={{ animationDelay: "0.2s" }}>
                 <CardHeader>
-                  <div className="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                  <div className="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 ring-1 ring-blue-500/20">
                     <Brain className="h-6 w-6 text-blue-500" />
                   </div>
                   <CardTitle>AI Computer Vision</CardTitle>
@@ -158,9 +161,9 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg">
+              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow hover:-translate-y-1 animate-fade-in-up opacity-0" style={{ animationDelay: "0.4s" }}>
                 <CardHeader>
-                  <div className="bg-green-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                  <div className="bg-green-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 ring-1 ring-green-500/20">
                     <Zap className="h-6 w-6 text-green-500" />
                   </div>
                   <CardTitle>Real-time Status</CardTitle>
@@ -172,9 +175,9 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg">
+              <Card className="bg-background/60 backdrop-blur-sm border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow hover:-translate-y-1 animate-fade-in-up opacity-0" style={{ animationDelay: "0.6s" }}>
                 <CardHeader>
-                  <div className="bg-purple-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                  <div className="bg-purple-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 ring-1 ring-purple-500/20">
                     <Globe className="h-6 w-6 text-purple-500" />
                   </div>
                   <CardTitle>Geo-Spatial Mapping</CardTitle>
@@ -200,27 +203,27 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Connector Line (Desktop) */}
-              <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-muted via-primary/50 to-muted -z-10" />
+              <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-muted via-primary/50 to-muted -z-10 animate-fade-in opacity-0" style={{ animationDelay: "1s" }} />
 
-              <div className="flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg">
-                  <Upload className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex flex-col items-center text-center group animate-fade-in-up opacity-0" style={{ animationDelay: "0.2s" }}>
+                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg group-hover:shadow-primary/20">
+                  <Upload className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">1. Upload Evidence</h3>
                 <p className="text-muted-foreground max-w-xs">Take a clear photo of the billboard in question and upload it to our secure platform.</p>
               </div>
 
-              <div className="flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg">
-                  <Brain className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex flex-col items-center text-center group animate-fade-in-up opacity-0" style={{ animationDelay: "0.4s" }}>
+                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg group-hover:shadow-primary/20">
+                  <Brain className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">2. AI Processing</h3>
                 <p className="text-muted-foreground max-w-xs">Our algorithms analyze the image for zoning rule violations, content issues, and safety hazards.</p>
               </div>
 
-              <div className="flex flex-col items-center text-center group">
-                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg">
-                  <CheckCircle className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex flex-col items-center text-center group animate-fade-in-up opacity-0" style={{ animationDelay: "0.6s" }}>
+                <div className="w-24 h-24 rounded-full bg-background border-4 border-muted flex items-center justify-center mb-6 group-hover:border-primary transition-colors shadow-lg group-hover:shadow-primary/20">
+                  <CheckCircle className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">3. Action Taken</h3>
                 <p className="text-muted-foreground max-w-xs">Reports are verified and sent to city officials. You earn points and badges for your contribution!</p>
@@ -240,7 +243,7 @@ export default function LandingPage() {
               Join thousands of citizens cleaning up our skyline one report at a time.
             </p>
             <Link href="/dashboard">
-              <Button size="lg" variant="secondary" className="h-14 px-8 text-lg shadow-xl hover:shadow-2xl transition-all">
+              <Button size="lg" variant="secondary" className="h-14 px-8 text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 animate-pulse-glow">
                 Launch Dashboard
               </Button>
             </Link>

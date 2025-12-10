@@ -232,7 +232,7 @@ export default function PublicDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 animate-fade-in-up">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -244,7 +244,7 @@ export default function PublicDashboard() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compliance Overview */}
-              <Card>
+              <Card className="hover:shadow-md transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -314,10 +314,10 @@ export default function PublicDashboard() {
             </div>
 
             {/* How to Report */}
-            <Card>
+            <Card className="hover:shadow-glow transition-all duration-300 border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5" />
+                  <Info className="h-5 w-5 text-primary animate-pulse" />
                   How to Report Billboard Violations
                 </CardTitle>
                 <CardDescription>Help us maintain billboard compliance in your community</CardDescription>

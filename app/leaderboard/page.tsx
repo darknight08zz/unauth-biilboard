@@ -100,13 +100,14 @@ export default function LeaderboardPage() {
                     </CardHeader>
                     <CardContent>
                         {isLoading ? (
-                            <div className="text-center py-8 text-muted-foreground">Loading leaderboard...</div>
+                            <div className="text-center py-8 text-muted-foreground animate-pulse">Loading leaderboard...</div>
                         ) : (
                             <div className="space-y-4">
                                 {users.map((user, index) => (
                                     <div
                                         key={user._id}
-                                        className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                                        className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-all hover:scale-[1.01] hover:shadow-sm animate-fade-in-up opacity-0"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center justify-center w-8">{getRankIcon(index)}</div>

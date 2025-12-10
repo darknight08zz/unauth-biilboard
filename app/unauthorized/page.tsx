@@ -7,8 +7,9 @@ import Link from "next/link"
 
 export default function UnauthorizedPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-destructive/5 rounded-full blur-3xl -z-10 opacity-50 animate-pulse-glow" />
+      <Card className="w-full max-w-md animate-scale-in bg-background/60 backdrop-blur-md border-destructive/20 shadow-lg">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
             <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -21,7 +22,7 @@ export default function UnauthorizedPage() {
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <Link href="/">
-            <Button>
+            <Button variant="outline" className="hover:bg-primary/10 hover:text-primary hover:border-primary transition-all">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back Home
             </Button>

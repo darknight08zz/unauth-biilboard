@@ -109,7 +109,7 @@ export default function CompliancePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 animate-fade-in-up">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <Card>
@@ -225,8 +225,8 @@ export default function CompliancePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRules.map((rule) => (
-                      <TableRow key={rule.id}>
+                    {filteredRules.map((rule, index) => (
+                      <TableRow key={rule.id} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'forwards' }}>
                         <TableCell className="font-mono text-sm">{rule.id}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="flex items-center gap-1 w-fit">
@@ -261,7 +261,7 @@ export default function CompliancePage() {
                 const highCount = categoryRules.filter((r) => r.severity === "high").length
 
                 return (
-                  <Card key={category.id}>
+                  <Card key={category.id} className="hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Icon className="h-5 w-5 text-primary" />
