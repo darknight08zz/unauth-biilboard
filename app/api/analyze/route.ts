@@ -92,10 +92,25 @@ export async function POST(req: Request) {
             },
         });
 
+        // Award points and badges
+        const pointsAwarded = 10;
+        const userUpdateUpdates: any = { $inc: { points: pointsAwarded } };
+
+        // Check if this is the first report to award a badge
+        const userReportCount = await Billboard.countDocuments({ userId: billboard.userId });
+        if (userReportCount === 1) {
+            userUpdateUpdates.$addToSet = { badges: "First Reporter" };
+        } else if (userReportCount === 5) {
+            userUpdateUpdates.$addToSet = { badges: "Active Citizen" };
+        }
+
+        await mongoose.model('User').findByIdAndUpdate(billboard.userId, userUpdateUpdates);
+
         return NextResponse.json({
             message: "Analysis complete",
             data: billboard,
-            analysis: enhancedResult
+            analysis: enhancedResult,
+            pointsEarned: pointsAwarded
         }, { status: 201 });
 
     } catch (error) {

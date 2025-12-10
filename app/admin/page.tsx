@@ -53,6 +53,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { MobileNav } from "@/components/MobileNav"
+import { ModeToggle } from "@/components/mode-toggle"
 
 interface ViolationReport {
   id: string
@@ -365,12 +366,14 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight">Admin Dashboard</h1>
-            </div>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight">Admin Dashboard</h1>
+              </div>
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -405,6 +408,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
+              <ModeToggle />
             </div>
             <MobileNav
               items={[
@@ -418,7 +422,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
             />
           </div>
         </div>
-      </header>
+      </header >
 
       <main className="container mx-auto px-4 py-8">
         {/* Stats Overview */}
@@ -801,7 +805,7 @@ ${summaryData.complianceRate < 80 ? "• Compliance rate below target - increase
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </div >
   )
 }
 

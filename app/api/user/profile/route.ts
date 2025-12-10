@@ -51,3 +51,37 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Failed to fetch profile: " + (error as Error).message }, { status: 500 })
     }
 }
+
+export async function PATCH(req: Request) {
+    try {
+        await connectToDatabase()
+        const session = await auth()
+
+        if (!session || !session.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const data = await req.json()
+        const { name, bio, location, image, phone, website, socials } = data
+
+        const updateData: any = {}
+        if (name) updateData.name = name
+        if (bio !== undefined) updateData.bio = bio
+        if (location !== undefined) updateData.location = location
+        if (image !== undefined) updateData.image = image
+        if (phone !== undefined) updateData.phone = phone
+        if (website !== undefined) updateData.website = website
+        if (socials !== undefined) updateData.socials = socials
+
+        const updatedUser = await User.findByIdAndUpdate(
+            session.user.id,
+            updateData,
+            { new: true }
+        ).select("-password")
+
+        return NextResponse.json({ message: "Profile updated", user: updatedUser })
+    } catch (error) {
+        console.error("Error updating profile:", error)
+        return NextResponse.json({ error: "Failed to update profile", details: (error as Error).message }, { status: 500 })
+    }
+}

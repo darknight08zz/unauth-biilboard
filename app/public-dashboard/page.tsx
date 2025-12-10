@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { MobileNav } from "@/components/MobileNav"
+import { ModeToggle } from "@/components/mode-toggle"
 
 interface ComplianceData {
   district: string
@@ -175,12 +176,14 @@ export default function PublicDashboard() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight">BillboardGuard Public Data</h1>
-            </div>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight">BillboardGuard Public Data</h1>
+              </div>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -213,6 +216,7 @@ export default function PublicDashboard() {
                   <Button variant="default" size="sm">Login</Button>
                 </Link>
               )}
+              <ModeToggle />
             </div>
             <MobileNav
               items={[

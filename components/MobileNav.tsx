@@ -42,8 +42,10 @@ export function MobileNav({ items, isLoggedIn, onLogout }: MobileNavProps) {
             <SheetContent side="left" className="pr-0">
                 <SheetHeader className="px-1 text-left">
                     <SheetTitle className="flex items-center">
-                        <Shield className="h-6 w-6 text-primary mr-2" />
-                        <span className="font-bold">BillboardGuard</span>
+                        <Link href="/" onClick={() => setOpen(false)} className="flex items-center">
+                            <Shield className="h-6 w-6 text-primary mr-2" />
+                            <span className="font-bold">BillboardGuard</span>
+                        </Link>
                     </SheetTitle>
                 </SheetHeader>
                 <div className="my-4 pb-10 pl-1 pr-6">
