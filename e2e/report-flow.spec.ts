@@ -14,7 +14,7 @@ test.describe('Billboard Reporting Flow', () => {
 
         // Wait for redirect to home or dashboard. 
         // If login is successful, we should be on home '/' or dashboard.
-        await page.waitForURL('**/', { timeout: 10000 });
+        await page.waitForURL('**/public-dashboard', { timeout: 10000 });
 
         // 2. Navigate to home (just to be sure, though login should take us there)
         await page.goto('/');
