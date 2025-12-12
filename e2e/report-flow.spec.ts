@@ -25,6 +25,9 @@ test.describe('Billboard Reporting Flow', () => {
         // 5. Upload a file
         await page.setInputFiles('input[type="file"]:not([capture])', path.join(__dirname, '../public/placeholder.jpg'));
 
+        // Wait for the preview to appear, confirming upload state change
+        await expect(page.getByText('Analysis Preview')).toBeVisible({ timeout: 10000 });
+
         // 6. Input Location (required now)
         await page.fill('input[placeholder*="Search for a location"]', 'Test Location, Bengaluru');
         // Select first option if autocomplete appears (simulated by just filling for now or clicking first option)
