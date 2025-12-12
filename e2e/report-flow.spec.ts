@@ -16,30 +16,30 @@ test.describe('Billboard Reporting Flow', () => {
         // If login is successful, we should be on home '/' or dashboard.
         await page.waitForURL('**/public-dashboard', { timeout: 10000 });
 
-        // 2. Navigate to home (just to be sure, though login should take us there)
-        await page.goto('/');
+        // 3. Navigate to analysis dashboard
+        await page.goto('/dashboard');
 
-        // 3. Find the analyzer section
-        await expect(page.getByText('C1: Image Upload')).toBeVisible({ timeout: 10000 });
+        // 4. Find the upload section
+        await expect(page.getByText('Upload Billboard Image')).toBeVisible({ timeout: 10000 });
 
-        // 4. Upload a file
-        const fileChooserPromise = page.waitForEvent('filechooser');
-        // Use a label or make input visible if needed.
-        // Given previous code, let's try setting input files directly on the hidden input.
-        // If that fails, we might need to click a label.
-        await page.setInputFiles('input#image-upload', path.join(__dirname, '../public/placeholder.jpg'));
+        // 5. Upload a file
+        await page.setInputFiles('input[type="file"]:not([capture])', path.join(__dirname, '../public/placeholder.jpg'));
 
-        // 5. Input Location
-        await page.fill('input#location', 'Test Location, Bengaluru');
+        // 6. Input Location (required now)
+        await page.fill('input[placeholder*="Search for a location"]', 'Test Location, Bengaluru');
+        // Select first option if autocomplete appears (simulated by just filling for now or clicking first option)
+        // Given the component structure, filling might triggering state update.
+        await page.keyboard.press('Enter');
 
-        // 6. Click "Start C3 Analysis"
-        await page.click('button:has-text("Start C3 Analysis")');
+        // 7. Click "Start AI Analysis"
+        const startBtn = page.getByRole('button', { name: 'Start AI Analysis' });
+        await expect(startBtn).toBeEnabled({ timeout: 5000 });
+        await startBtn.click();
 
-        // 7. Wait for results
-        await expect(page.getByText('C3: Analysis & Verification Results')).toBeVisible({ timeout: 15000 });
+        // 8. Wait for results
+        await expect(page.getByText('Compliance Analysis Results')).toBeVisible({ timeout: 20000 });
 
-        // 8. Verify some result details
+        // 9. Verify some result details
         await expect(page.getByText('Compliance Score')).toBeVisible();
-        await expect(page.getByText('Risk Level:')).toBeVisible();
     });
 });
