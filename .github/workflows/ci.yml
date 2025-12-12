@@ -14,10 +14,20 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
+    
+    env:
+      AUTH_SECRET: 'supersecret_for_testing'
+      NEXTAUTH_URL: 'http://localhost:3000'
+      MONGODB_URI: 'mongodb://localhost:27017/test_db'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: '6.0'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,6 +40,9 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+
+      - name: Seed Database
+        run: node scripts/seed-test-user.js
 
       - name: Run Unit Tests
         run: npm run test
